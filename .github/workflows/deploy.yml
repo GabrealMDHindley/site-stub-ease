@@ -1,0 +1,30 @@
+# Deploys every push on main to the client's existing Vercel project
+# (production). Secrets live in this repo's Actions secrets:
+#   VERCEL_TOKEN       - token created in the client's Vercel account
+#   VERCEL_ORG_ID      - the client's Vercel Team ID (team_...)
+#   VERCEL_PROJECT_ID  - the stubease.com project's ID (prj_...)
+name: Deploy to Vercel
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: vercel-production
+  cancel-in-progress: false
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm install --global vercel@latest
+      - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
