@@ -46,8 +46,9 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
 - `src/index.css` — Tailwind layers + utilities `.bp-grid`, `.bp-grid-fine`, `.hud-frame`,
   `.mono-label`, `.text-glow`, `.gradient-fade-b`, `.cursor-glow`, `.perspective-container`.
 - `public/videos/` — the two local videos. **All other media (25 images, 7 videos, 7 PDFs)
-  is hot-linked from `https://stubease.pplx.app/`** (a Perplexity app origin). Known
-  fragility; moving it into `public/` is a planned, approved-on-request task.
+  is hot-linked from `https://stubease.pplx.app/`** — the owner's earlier site, built on
+  Perplexity, which this site replaced. If that app lapses the media disappears. Moving
+  it into `public/` is a planned task that runs on the user's go-ahead.
 
 ## Brand tokens (`tailwind.config.js`)
 `void` #0A0C0F page background · `steel` #12151A / `steel-panel` #171B21 / `steel-line`
