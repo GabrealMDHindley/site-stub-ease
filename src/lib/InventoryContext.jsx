@@ -1,67 +1,48 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { kitSkus, componentSkus } from '../data/inventory.js'
+import { initialStockMap } from '../data/inventory.js'
 
 // -----------------------------------------------------------------------
-// LIVE STOCK TRACKING — READ THIS BEFORE ASSUMING THIS IS PRODUCTION-READY
+// LIVE STOCK TRACKING
 // -----------------------------------------------------------------------
-// This context keeps stock counts in memory (and mirrors them to
-// localStorage so a refresh doesn't reset them mid-session). That's enough
-// to make the shopping experience feel real and correctly prevent a single
-// visitor from ordering more than is in stock.
+// On mount this fetches real, shared stock from /api/inventory. Until a
+// database is connected there (see CLAUDE.md → Inventory), that endpoint
+// falls back to the static opening balance in src/data/inventory.js, so the
+// site keeps working — every visitor just sees the same starting numbers.
 //
-// It is NOT enough to keep stock accurate across every visitor and device,
-// because a static site has no shared server-side state. Two people
-// shopping at the same time in different browsers will each see stock
-// deplete independently — neither one affects the other, and nothing here
-// is decremented by a real completed Stripe payment.
-//
-// To make stock genuinely shared and accurate for everyone:
-//   1. Add a real database — Vercel KV (@vercel/kv) is the fastest to wire
-//      up on Vercel; Postgres/Supabase work too.
-//   2. Move the "available stock" numbers into that database.
-//   3. In /api/checkout.js, decrement stock there BEFORE creating the
-//      Stripe session (so two people can't both buy the last box).
-//   4. Add a Stripe webhook (/api/stripe-webhook.js) that re-confirms the
-//      decrement on successful payment, and restores stock on a
-//      cancelled/expired checkout session.
-// Once that's in place, swap the localStorage calls below for fetch calls
-// to /api/inventory, and every visitor sees the same real number.
+// `reserve`/`release` only adjust this in-memory state, for "don't let me
+// add more to the cart than is currently available" while shopping. They are
+// NOT a server-side hold — nothing is decremented until a Stripe payment
+// actually completes (api/stripe-webhook.js). Two people can in principle
+// both see the last box available and both complete payment before either
+// deployment reflects the other's purchase; BackorderModal is the site's
+// existing, deliberate way of handling that rather than promising a hard
+// real-time lock the architecture doesn't have.
 // -----------------------------------------------------------------------
-
-const STORAGE_KEY = 'stubease-inventory-v1'
-
-function buildInitialStock() {
-  const stock = {}
-  kitSkus.forEach((k) => {
-    stock[k.sku] = k.qohBoxes // stock tracked in boxes for kits
-  })
-  componentSkus.forEach((c) => {
-    stock[c.sku] = c.unitsOnHand // stock tracked in individual pieces
-  })
-  return stock
-}
 
 const InventoryContext = createContext(null)
 
 export function InventoryProvider({ children }) {
-  const [stock, setStock] = useState(() => {
-    if (typeof window === 'undefined') return buildInitialStock()
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY)
-      if (saved) return { ...buildInitialStock(), ...JSON.parse(saved) }
-    } catch {
-      // ignore corrupt storage, fall through to fresh state
-    }
-    return buildInitialStock()
-  })
+  const [stock, setStock] = useState(() => initialStockMap())
+  const [kvConnected, setKvConnected] = useState(null) // null = not known yet
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stock))
-    } catch {
-      // storage unavailable (private browsing, etc.) — non-fatal
+    let cancelled = false
+    fetch('/api/inventory')
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.stock) return
+        setStock(data.stock)
+        setKvConnected(Boolean(data.kvConnected))
+      })
+      .catch((err) => {
+        // Stay on the static baseline — the site still works, just not with
+        // live numbers, same as before a database is connected.
+        console.warn('[inventory] could not fetch /api/inventory, using static baseline.', err)
+      })
+    return () => {
+      cancelled = true
     }
-  }, [stock])
+  }, [])
 
   const getAvailable = useCallback((sku) => (sku in stock ? stock[sku] : 0), [stock])
 
@@ -79,10 +60,8 @@ export function InventoryProvider({ children }) {
     })
   }, [])
 
-  const resetInventory = useCallback(() => setStock(buildInitialStock()), [])
-
   return (
-    <InventoryContext.Provider value={{ getAvailable, reserve, release, resetInventory }}>
+    <InventoryContext.Provider value={{ getAvailable, reserve, release, kvConnected }}>
       {children}
     </InventoryContext.Provider>
   )

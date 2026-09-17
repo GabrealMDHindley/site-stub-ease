@@ -41,3 +41,36 @@ export const roiRepresentativeMsrp = {
   '3/4': (7.85 + 7.95) / 2, // = 7.90
   '1': (9.0 + 9.1) / 2, // = 9.05
 }
+
+// Unified lookup used by both the client (InventoryContext) and the server
+// (api/checkout.js, api/inventory.js) so a SKU never gets priced two different
+// ways. `pack` is 1 for components (stock/price is per individual piece);
+// kits are sold and priced by the box.
+export function getSkuRecord(sku) {
+  const kit = kitSkus.find((k) => k.sku === sku)
+  if (kit) {
+    return { sku, kind: 'kit', pack: kit.pack, msrpPerUnit: kit.msrpPerUnit, tradeSize: kit.tradeSize, height: kit.height }
+  }
+  const component = componentSkus.find((c) => c.sku === sku)
+  if (component) {
+    return { sku, kind: 'component', pack: 1, msrpPerUnit: component.msrpPerUnit, tradeSize: component.tradeSize, name: component.name }
+  }
+  return null
+}
+
+export const allSkus = [...kitSkus.map((k) => k.sku), ...componentSkus.map((c) => c.sku)]
+
+// The August 2026 opening stock (kits tracked in boxes, components in pieces).
+// This is a fallback/seed only — once a database is connected (see
+// api/inventory.js), live counts there are the real source of truth and this
+// snapshot goes stale on purpose; it's what a fresh SKU starts at.
+export function initialStockMap() {
+  const stock = {}
+  kitSkus.forEach((k) => {
+    stock[k.sku] = k.qohBoxes
+  })
+  componentSkus.forEach((c) => {
+    stock[c.sku] = c.unitsOnHand
+  })
+  return stock
+}

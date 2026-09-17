@@ -1,63 +1,69 @@
 // Vercel Serverless Function — GET/POST /api/inventory
 //
-// THIS IS A SCAFFOLD, NOT A PRODUCTION INVENTORY SYSTEM YET.
+// GET returns real, shared stock once a database is connected (see
+// CLAUDE.md → Inventory). Until then it returns the static August 2026
+// opening balance from src/data/inventory.js so the site keeps working —
+// every visitor sees the same starting numbers, they just don't move.
 //
-// Right now the site tracks stock per-browser (see src/lib/InventoryContext.jsx)
-// so the shopping experience feels real and correctly stops a single visitor
-// from over-ordering. But a static site has no shared server state, so two
-// people shopping at once won't see each other's stock changes.
-//
-// To make this endpoint the real source of truth for everyone:
-//
-//   1. Add a database. The fastest option on Vercel is Vercel KV:
-//        npm install @vercel/kv
-//      then connect a KV store from the Vercel dashboard (Storage tab) —
-//      this automatically sets KV_REST_API_URL / KV_REST_API_TOKEN env vars.
-//
-//   2. Seed it once with the starting stock from
-//      src/data/inventory.js (kitSkus[].qohBoxes, componentSkus[].unitsOnHand).
-//
-//   3. Replace the in-memory `stock` object below with real kv.get/kv.set calls:
-//        import { kv } from '@vercel/kv'
-//        const available = await kv.get(`stock:${sku}`)
-//        await kv.set(`stock:${sku}`, available - qty)
-//
-//   4. Call this endpoint's POST from /api/checkout.js BEFORE creating the
-//      Stripe session, so stock is reserved at checkout time, not just when
-//      the frontend optimistically updates.
-//
-//   5. Add a Stripe webhook (/api/stripe-webhook.js) that restores stock if
-//      a checkout session expires or is cancelled without payment.
-//
-//   6. Update src/lib/InventoryContext.jsx to fetch from this endpoint
-//      instead of (or in addition to) localStorage, so every visitor sees
-//      the same real number.
-//
-// Until steps 1–3 are done, this endpoint just echoes back the request so
-// the frontend integration point exists and won't error — it does NOT
-// persist anything across serverless invocations.
+// The real decrement happens in api/stripe-webhook.js when a Stripe payment
+// completes, not here. POST is a manual admin adjustment (restock, correction),
+// gated behind INVENTORY_ADMIN_KEY — disabled until that env var is set.
+
+import { allSkus, initialStockMap } from '../src/data/inventory.js'
+import { getKv } from './_lib/kv.js'
 
 export default async function handler(req, res) {
+  const kv = getKv()
+
   if (req.method === 'GET') {
-    // Would return real current stock levels once a database is connected.
-    return res.status(200).json({
-      ok: true,
-      note: 'Inventory endpoint not yet connected to a database — see comments in api/inventory.js.',
+    if (!kv) {
+      return res.status(200).json({
+        ok: true,
+        kvConnected: false,
+        stock: initialStockMap(),
+        note: 'No database connected yet — showing the starting stock from src/data/inventory.js, not live numbers. See CLAUDE.md → Inventory.',
+      })
+    }
+
+    const keys = allSkus.map((sku) => `stock:${sku}`)
+    const values = await kv.mget(...keys)
+    const baseline = initialStockMap()
+    const stock = {}
+    allSkus.forEach((sku, i) => {
+      const v = values[i]
+      stock[sku] = v === null || v === undefined ? baseline[sku] : Number(v)
     })
+
+    return res.status(200).json({ ok: true, kvConnected: true, stock })
   }
 
   if (req.method === 'POST') {
-    const { sku, qty } = req.body || {}
-    if (!sku || !qty) {
-      return res.status(400).json({ error: 'Missing sku or qty' })
+    const adminKey = process.env.INVENTORY_ADMIN_KEY
+    if (!adminKey) {
+      return res.status(501).json({
+        error: 'Manual stock adjustment is not enabled. Set INVENTORY_ADMIN_KEY in Vercel to enable it, or use the CRM once it exists.',
+      })
     }
-    // No-op until a real database is wired in — see comments above.
-    return res.status(200).json({
-      ok: true,
-      sku,
-      qty,
-      note: 'Stock was NOT persisted server-side — connect a database (see api/inventory.js) to make this real.',
-    })
+    if (req.headers['authorization'] !== `Bearer ${adminKey}`) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    if (!kv) {
+      return res.status(500).json({ error: 'No database connected — see CLAUDE.md → Inventory.' })
+    }
+
+    const { sku, set, adjust } = req.body || {}
+    if (!sku || !allSkus.includes(sku)) {
+      return res.status(400).json({ error: 'Unknown sku' })
+    }
+    if (typeof set === 'number') {
+      await kv.set(`stock:${sku}`, set)
+    } else if (typeof adjust === 'number') {
+      await kv.incrby(`stock:${sku}`, adjust)
+    } else {
+      return res.status(400).json({ error: 'Provide either { sku, set: <number> } or { sku, adjust: <number> }' })
+    }
+    const now = await kv.get(`stock:${sku}`)
+    return res.status(200).json({ ok: true, sku, stock: Number(now) })
   }
 
   res.setHeader('Allow', 'GET, POST')

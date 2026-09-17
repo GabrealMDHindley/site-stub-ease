@@ -63,11 +63,30 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   `{ name, company, email, phone, …results, tradeSize, floors, stubUpsPerFloor, damageRate,
   laborCost }`; contact page `{ firstName, lastName, company, email, phone, reason, details,
   source: 'contact-page' }`. Returns 200 even if downstream forwarding fails.
-- `/api/checkout` creates a Stripe Checkout session with `STRIPE_SECRET_KEY` and Price IDs
-  `STRIPE_PRICE_STUB_EASE_II`, `STRIPE_PRICE_BEND_EASE`, `STRIPE_PRICE_STAND_EASE`;
-  redirects to `/products?checkout=success|cancelled`. Returns 500 until the key is set.
-- `/api/inventory` is a scaffold (echoes, persists nothing). Real shared stock needs a
-  database — the intended steps are in the file's comments.
+- `/api/checkout` creates a Stripe Checkout session with `STRIPE_SECRET_KEY`. Prices are
+  computed server-side per exact SKU from `src/data/inventory.js` (kits by box, components
+  by piece) via Stripe's dynamic `price_data` — no Stripe Dashboard Products/Prices to
+  create or keep in sync. Order contents (sku + qty) ride along in the session's
+  `metadata.order` for the webhook to read back. Returns 500 until the key is set.
+- `/api/stripe-webhook` (POST, raw body — `config.api.bodyParser: false`) verifies the
+  event with `STRIPE_WEBHOOK_SECRET` and, on `checkout.session.completed`, decrements
+  stock in the database for exactly what was paid for. Idempotent per Stripe event id
+  (7-day dedupe key) so a retried delivery never double-decrements. If no database is
+  connected it logs a warning and still returns 200 (Stripe requires 2xx; the payment is
+  real either way, only the stock bookkeeping is skipped).
+- `/api/inventory` (GET) returns real shared stock once a database is connected, or the
+  static opening balance from `src/data/inventory.js` as a fallback. `api/_lib/kv.js`
+  reads either `KV_REST_API_URL`/`KV_REST_API_TOKEN` or `UPSTASH_REDIS_REST_URL`/
+  `UPSTASH_REDIS_REST_TOKEN` — whichever a connected database adds. POST is a manual
+  admin adjustment, gated behind `INVENTORY_ADMIN_KEY` (unset = disabled).
+- **No pre-payment stock hold.** `reserve()`/`release()` in `InventoryContext.jsx` only
+  adjust in-memory client state so a shopper can't add more to the cart than they can see
+  is available; nothing is held server-side between "add to cart" and a completed
+  payment. Two shoppers can in principle both see the last box and both pay before either
+  page reflects the other's purchase — `BackorderModal` is the site's existing, deliberate
+  answer to that, not a bug to silently "fix" with a bigger lock.
+- **Known gap:** the cart (`CartContext.jsx`) is in-memory only and empties on a page
+  refresh — noticed while wiring Stripe, not fixed (out of scope for that change).
 - Public contact: **info@stubease.com** only. The legacy site stub-ease.com lists phone
   numbers (312-972-7505 / 800-877-1390) that this site omits — ask before adding them.
 

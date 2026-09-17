@@ -10,7 +10,10 @@ export default function CartDrawer({ open, onClose }) {
   const { items, removeItem, updateQty, subtotal } = useCart()
 
   const handleCheckout = () => {
-    startCheckout(items.map((i) => ({ slug: i.slug, quantity: i.qty, tradeSize: i.tradeSize, height: i.height, pack: i.pack })))
+    // sku carries trade size / height / pack — /api/checkout looks the exact
+    // price up from it server-side, so the amount Stripe charges always
+    // matches what's shown here.
+    startCheckout(items.map((i) => ({ sku: i.sku, quantity: i.qty, slug: i.slug, name: i.name })))
   }
 
   return (

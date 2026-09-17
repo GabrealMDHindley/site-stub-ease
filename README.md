@@ -42,13 +42,31 @@ npm run dev
 API keys must never live in frontend code, so both integrations run through
 Vercel Serverless Functions in `/api`, which the frontend calls.
 
-### Stripe (`/api/checkout.js`)
-1. `npm install stripe` (already listed in package.json).
-2. In the Stripe Dashboard, create a Product + Price for each SKU you sell (Stub-EASE II™ kit packs of 10/25, etc.).
-3. In Vercel → Project → Settings → Environment Variables, add:
-   - `STRIPE_SECRET_KEY`
-   - `STRIPE_PRICE_STUB_EASE_II`, `STRIPE_PRICE_BEND_EASE`, `STRIPE_PRICE_STAND_EASE` (the Price IDs from step 2)
-4. The "Buy Now" button on each product page (`src/pages/ProductDetail.jsx`) already calls `startCheckout()`, which posts to `/api/checkout` and redirects to Stripe Checkout.
+### Stripe (`/api/checkout.js` + `/api/stripe-webhook.js`)
+No Stripe Dashboard Products/Prices to create — prices are computed server-side,
+per exact SKU, from `src/data/inventory.js` at the moment of checkout, so what
+Stripe charges always matches what the page showed and a price change is just
+an edit to that file.
+1. In Vercel → Project → Settings → Environment Variables, add `STRIPE_SECRET_KEY`
+   (`sk_test_...` to start, `sk_live_...` once you're ready to take real payments).
+2. Clicking "Proceed to Checkout" calls `startCheckout()` → `/api/checkout` →
+   redirects to Stripe Checkout.
+3. Stripe Dashboard → Developers → Webhooks → Add endpoint →
+   `https://www.stubease.com/api/stripe-webhook` → event `checkout.session.completed`
+   → copy the signing secret into Vercel as `STRIPE_WEBHOOK_SECRET`. This is what
+   decrements stock when a payment actually completes (see "Inventory" below).
+   To test before going live: `stripe listen --forward-to <url>/api/stripe-webhook`
+   forwards test-mode events without registering anything in the dashboard.
+
+### Inventory (`/api/inventory.js` + `/api/stripe-webhook.js`)
+Real, shared stock needs a database. Vercel → Project → Storage → connect a
+database (Upstash Redis is the fit here — REST-based, no connection pooling to
+manage) — `vercel install upstash`, or the same from the dashboard. Whatever
+env vars that adds (`KV_REST_API_URL`/`KV_REST_API_TOKEN` or
+`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`), `api/_lib/kv.js` reads
+either pair — nothing to rename. Until it's connected, `/api/inventory` falls
+back to the static opening balance in `src/data/inventory.js` and the site
+still works, just without live numbers.
 
 ### GoHighLevel CRM (`/api/lead.js`)
 1. In GHL: **Automation → Workflows → New Workflow → Trigger: "Inbound Webhook."** Copy the generated URL.
