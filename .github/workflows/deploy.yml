@@ -40,17 +40,31 @@ jobs:
           [ "$fail" = 0 ] || exit 1
           echo "VERCEL_ORG_ID     starts with '${ORG:0:5}' (expected 'team_'), length ${#ORG}"
           echo "VERCEL_PROJECT_ID starts with '${PRJ:0:4}' (expected 'prj_'), length ${#PRJ}"
-          user=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" https://api.vercel.com/v2/user)
-          team=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v2/teams/$ORG")
-          proj=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v9/projects/$PRJ?teamId=$ORG")
-          projNoTeam=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v9/projects/$PRJ")
-          echo "1) token valid                 GET /v2/user                      -> HTTP $user (200 = ok)"
-          echo "2) team reachable with token   GET /v2/teams/<ORG_ID>            -> HTTP $team (200 = ok)"
-          echo "3) project found in that team  GET /v9/projects/<PROJECT_ID>     -> HTTP $proj (200 = ok)"
-          echo "   project found without team  GET /v9/projects/<PROJECT_ID>     -> HTTP $projNoTeam"
-          if [ "$user" != 200 ]; then echo "::error::VERCEL_TOKEN is not a valid Vercel token (wrong paste, expired, or revoked). Create a new one in the client's account and replace the secret."; exit 1; fi
-          if [ "$team" != 200 ]; then echo "::error::VERCEL_ORG_ID is not a Team ID this token can access. It must start with team_ (Team Settings > General > Team ID of the team that owns stubease.com) and the token's Scope must be that same team."; exit 1; fi
-          if [ "$proj" != 200 ]; then echo "::error::VERCEL_PROJECT_ID was not found in that team. It must start with prj_ (the stubease.com project > Settings > General > Project ID)."; exit 1; fi
+          case "$TOK" in vcp_*) echo "token type: scoped token (vcp_)";; *) echo "token type: classic account token";; esac
+          H="Authorization: Bearer $TOK"
+          proj=$(curl -s -o project.json -w '%{http_code}' -H "$H" "https://api.vercel.com/v9/projects/$PRJ")
+          team=$(curl -s -o /dev/null -w '%{http_code}' -H "$H" "https://api.vercel.com/v2/teams/$ORG")
+          teams=$(curl -s -o teams.json -w '%{http_code}' -H "$H" "https://api.vercel.com/v2/teams?limit=100")
+          echo "project readable with token   GET /v9/projects/<PROJECT_ID> -> HTTP $proj (200 = ok)"
+          echo "team readable with token      GET /v2/teams/<ORG_ID>        -> HTTP $team (200 = ok)"
+          echo "teams list with token         GET /v2/teams                 -> HTTP $teams"
+          if [ "$proj" != 200 ]; then
+            echo "::error::The token cannot read project VERCEL_PROJECT_ID (HTTP $proj). Either the Project ID is wrong (stubease.com project > Settings > General > Project ID, starts with prj_) or the token is invalid/expired."; exit 1
+          fi
+          owner=$(jq -r '.accountId // empty' project.json)
+          pname=$(jq -r '.name // empty' project.json)
+          echo "project name: $pname"
+          if [ "$owner" = "$ORG" ]; then echo "project.accountId == VERCEL_ORG_ID: yes"; else echo "project.accountId == VERCEL_ORG_ID: NO (starts with '${owner:0:5}', length ${#owner})"; fi
+          if [ "$teams" = 200 ]; then
+            if jq -e --arg id "$ORG" '.teams[]? | select(.id == $id)' teams.json >/dev/null; then echo "VERCEL_ORG_ID appears in the token's team list: yes"; else echo "VERCEL_ORG_ID appears in the token's team list: no"; fi
+          fi
+          rm -f project.json teams.json
+          if [ "$owner" != "$ORG" ]; then
+            echo "::error::VERCEL_ORG_ID is not the team that owns this project. Replace it with the Team ID of the team that owns the stubease.com project (switch to that team top-left > Settings > General > Team ID)."; exit 1
+          fi
+          if [ "$team" != 200 ]; then
+            echo "::error::The token can read the project but not its team (HTTP $team), so the Vercel CLI cannot link. The token was scoped to the project only. Create a new token with Scope = the whole team (no project restriction) and replace VERCEL_TOKEN."; exit 1
+          fi
           echo "All three credentials check out."
           echo "VERCEL_ORG_ID=$ORG" >> "$GITHUB_ENV"
           echo "VERCEL_PROJECT_ID=$PRJ" >> "$GITHUB_ENV"
