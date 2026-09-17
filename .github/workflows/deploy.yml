@@ -18,13 +18,42 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm install --global vercel@latest
+      - name: Check Vercel credentials
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Trim stray whitespace/newlines that can sneak in when pasting secrets.
+          ORG="$(printf %s "$VERCEL_ORG_ID" | tr -d '[:space:]')"
+          PRJ="$(printf %s "$VERCEL_PROJECT_ID" | tr -d '[:space:]')"
+          TOK="$(printf %s "$VERCEL_TOKEN" | tr -d '[:space:]')"
+          fail=0
+          [ -n "$TOK" ] || { echo "::error::VERCEL_TOKEN secret is empty"; fail=1; }
+          [ -n "$ORG" ] || { echo "::error::VERCEL_ORG_ID secret is empty"; fail=1; }
+          [ -n "$PRJ" ] || { echo "::error::VERCEL_PROJECT_ID secret is empty"; fail=1; }
+          [ "$fail" = 0 ] || exit 1
+          echo "VERCEL_ORG_ID     starts with '${ORG:0:5}' (expected 'team_'), length ${#ORG}"
+          echo "VERCEL_PROJECT_ID starts with '${PRJ:0:4}' (expected 'prj_'), length ${#PRJ}"
+          user=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" https://api.vercel.com/v2/user)
+          team=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v2/teams/$ORG")
+          proj=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v9/projects/$PRJ?teamId=$ORG")
+          projNoTeam=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOK" "https://api.vercel.com/v9/projects/$PRJ")
+          echo "1) token valid                 GET /v2/user                      -> HTTP $user (200 = ok)"
+          echo "2) team reachable with token   GET /v2/teams/<ORG_ID>            -> HTTP $team (200 = ok)"
+          echo "3) project found in that team  GET /v9/projects/<PROJECT_ID>     -> HTTP $proj (200 = ok)"
+          echo "   project found without team  GET /v9/projects/<PROJECT_ID>     -> HTTP $projNoTeam"
+          if [ "$user" != 200 ]; then echo "::error::VERCEL_TOKEN is not a valid Vercel token (wrong paste, expired, or revoked). Create a new one in the client's account and replace the secret."; exit 1; fi
+          if [ "$team" != 200 ]; then echo "::error::VERCEL_ORG_ID is not a Team ID this token can access. It must start with team_ (Team Settings > General > Team ID of the team that owns stubease.com) and the token's Scope must be that same team."; exit 1; fi
+          if [ "$proj" != 200 ]; then echo "::error::VERCEL_PROJECT_ID was not found in that team. It must start with prj_ (the stubease.com project > Settings > General > Project ID)."; exit 1; fi
+          echo "All three credentials check out."
+          echo "VERCEL_ORG_ID=$ORG" >> "$GITHUB_ENV"
+          echo "VERCEL_PROJECT_ID=$PRJ" >> "$GITHUB_ENV"
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
