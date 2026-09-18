@@ -42,16 +42,21 @@ npm run dev
 API keys must never live in frontend code, so both integrations run through
 Vercel Serverless Functions in `/api`, which the frontend calls.
 
-### Stripe (`/api/checkout.js` + `/api/stripe-webhook.js`)
-No Stripe Dashboard Products/Prices to create — prices are computed server-side,
-per exact SKU, from `src/data/inventory.js` at the moment of checkout, so what
-Stripe charges always matches what the page showed and a price change is just
-an edit to that file.
+### Stripe (`/api/checkout.js` + `/api/prices.js` + `/api/stripe-webhook.js`)
+Prices are Stripe-managed: edit a Price's amount in the Stripe Dashboard and it's
+live on the site and at checkout within about a minute, no code change or deploy
+needed.
 1. In Vercel → Project → Settings → Environment Variables, add `STRIPE_SECRET_KEY`
    (`sk_test_...` to start, `sk_live_...` once you're ready to take real payments).
-2. Clicking "Proceed to Checkout" calls `startCheckout()` → `/api/checkout` →
-   redirects to Stripe Checkout.
-3. Stripe Dashboard → Developers → Webhooks → Add endpoint →
+2. For each SKU you want Stripe to price: open that Price in the Stripe Dashboard
+   (dashboard.stripe.com/prices) and set its **Lookup key** to the exact SKU code
+   (e.g. `SE2-34-8-10`, `CAP-34` — the full list is `allSkus` in
+   `src/data/inventory.js`). A SKU with no lookup key set falls back to the price
+   in `src/data/inventory.js`, so this can be done a few at a time.
+3. Clicking "Proceed to Checkout" calls `startCheckout()` → `/api/checkout`, which
+   charges the exact Stripe Price for each SKU that has one → redirects to Stripe
+   Checkout.
+4. Stripe Dashboard → Developers → Webhooks → Add endpoint →
    `https://www.stubease.com/api/stripe-webhook` → event `checkout.session.completed`
    → copy the signing secret into Vercel as `STRIPE_WEBHOOK_SECRET`. This is what
    decrements stock when a payment actually completes (see "Inventory" below).

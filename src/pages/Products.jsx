@@ -18,7 +18,7 @@ function currency(n) {
 
 export default function Products() {
   const { addItem } = useCart()
-  const { getAvailable, reserve } = useInventory()
+  const { getAvailable, reserve, getPrice } = useInventory()
   const [tradeSize, setTradeSize] = useState('3/4')
   const [height, setHeight] = useState('8')
   const [pack, setPack] = useState('10')
@@ -32,7 +32,10 @@ export default function Products() {
 
   const selectedSku = getKitSku(tradeSize, height, pack)
   const availableBoxes = selectedSku ? getAvailable(selectedSku.sku) : 0
-  const pricePerBox = selectedSku ? selectedSku.msrpPerUnit * selectedSku.pack : 0
+  // getPrice reads the live Stripe price for this SKU if Jeff has set one,
+  // else falls back to the same static math this used to do directly.
+  const pricePerBox = selectedSku ? getPrice(selectedSku.sku) : 0
+  const perUnitPrice = selectedSku ? pricePerBox / selectedSku.pack : 0
 
   const commitAdd = () => {
     addItem({
@@ -112,7 +115,7 @@ export default function Products() {
                 {SHOW_PRICING && (
                   <div>
                     <div className="mono-label text-[10px] text-steel-soft">
-                      {currency(pricePerBox)}/box of {pack} · {currency(selectedSku?.msrpPerUnit || 0)}/unit
+                      {currency(pricePerBox)}/box of {pack} · {currency(perUnitPrice)}/unit
                     </div>
                     <div className="font-display text-2xl font-semibold text-signal">
                       {currency(pricePerBox * qty)}

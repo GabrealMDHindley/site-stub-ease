@@ -3,12 +3,14 @@
 // Creates a Stripe Checkout session server-side (Stripe secret keys must
 // never be exposed in frontend code) and returns the redirect URL.
 //
-// Prices are computed here, per exact SKU, from src/data/inventory.js —
-// not from pre-created Stripe Price IDs. A kit's SKU depends on trade size,
-// height, AND pack size (8 different prices), so one flat Stripe Price per
-// product would charge the wrong amount for most selections. This way the
-// price Stripe charges always matches the price the customer saw on the page,
-// and a price change only ever needs an edit in inventory.js.
+// Prices come from Stripe first: if a SKU has a matching Price (by
+// lookup_key — see api/_lib/stripePrices.js), that Price's id is used
+// directly as the line item, so whatever Jeff has set in the Stripe
+// Dashboard is exactly what's charged — same source src/pages/Products.jsx
+// and ProductDetail.jsx display, via /api/prices, so the two can never
+// disagree. A SKU with no Stripe Price yet falls back to a price computed
+// from src/data/inventory.js, same as before Stripe pricing existed, so
+// checkout keeps working for anything not migrated yet.
 //
 // Setup: in Vercel → Project → Settings → Environment Variables, add
 //   STRIPE_SECRET_KEY = sk_test_... (test mode) or sk_live_... (live)
@@ -18,6 +20,7 @@
 import Stripe from 'stripe'
 import { getSkuRecord } from '../src/data/inventory.js'
 import { getProductBySlug } from '../src/data/products.js'
+import { getStripePricesBySku } from './_lib/stripePrices.js'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '')
 
@@ -32,6 +35,7 @@ export default async function handler(req, res) {
   }
 
   const { items = [] } = req.body || {}
+  const { prices: stripePrices } = await getStripePricesBySku()
 
   const order = []
   const line_items = []
@@ -41,31 +45,39 @@ export default async function handler(req, res) {
     const qty = Number(item?.quantity) || 0
     if (!record || qty < 1) continue
 
-    // Kits are priced and sold by the box (unit price × pack size); components
-    // are priced and sold per individual piece (pack is always 1 for them).
-    const unitAmount = Math.round(record.msrpPerUnit * record.pack * 100)
-    if (!Number.isFinite(unitAmount) || unitAmount <= 0) continue
+    const live = stripePrices[record.sku]
+    if (live) {
+      // A real Stripe Price exists for this SKU — charge exactly that.
+      line_items.push({ price: live.id, quantity: qty })
+    } else {
+      // No Stripe Price registered yet for this SKU — fall back to a price
+      // computed from the static catalog. Kits are priced and sold by the
+      // box (unit price × pack size); components per individual piece
+      // (pack is always 1 for them).
+      const unitAmount = Math.round(record.msrpPerUnit * record.pack * 100)
+      if (!Number.isFinite(unitAmount) || unitAmount <= 0) continue
 
-    const product = getProductBySlug(item.slug) || (record.kind === 'kit' ? getProductBySlug('stub-ease-ii-system') : null)
-    const label = item.name || product?.name || record.sku
-    const detail =
-      record.kind === 'kit'
-        ? `${record.tradeSize}" · ${record.height}" · pack of ${record.pack}`
-        : record.tradeSize
-          ? `${record.tradeSize}"`
-          : undefined
+      const product = getProductBySlug(item.slug) || (record.kind === 'kit' ? getProductBySlug('stub-ease-ii-system') : null)
+      const label = item.name || product?.name || record.sku
+      const detail =
+        record.kind === 'kit'
+          ? `${record.tradeSize}" · ${record.height}" · pack of ${record.pack}`
+          : record.tradeSize
+            ? `${record.tradeSize}"`
+            : undefined
 
-    line_items.push({
-      price_data: {
-        currency: 'usd',
-        unit_amount: unitAmount,
-        product_data: {
-          name: detail ? `${label} (${detail})` : label,
-          metadata: { sku: record.sku },
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          unit_amount: unitAmount,
+          product_data: {
+            name: detail ? `${label} (${detail})` : label,
+            metadata: { sku: record.sku },
+          },
         },
-      },
-      quantity: qty,
-    })
+        quantity: qty,
+      })
+    }
     order.push({ sku: record.sku, qty })
   }
 

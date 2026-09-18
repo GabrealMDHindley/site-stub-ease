@@ -5,6 +5,15 @@
 // Kits are sold by the box (pack of 10 or 25); Landed/MSRP/Dist prices below are
 // PER INDIVIDUAL UNIT — multiply by pack size for the per-box price.
 //
+// PRICING HERE IS A FALLBACK ONLY (as of 2026-09-18). The real, current price
+// of record is whatever Jeff has set in the Stripe Dashboard for that SKU's
+// Price (matched by lookup_key — see api/_lib/stripePrices.js). The site
+// reads live from Stripe via /api/prices and only falls back to the numbers
+// below for a SKU that doesn't have a Stripe Price set up yet. Don't "fix" a
+// price a customer reports as wrong by editing this file — check Stripe
+// first. These numbers WILL drift from Stripe over time by design; that's
+// expected, not a bug to reconcile.
+//
 // This is a point-in-time snapshot. See src/lib/InventoryContext.jsx for how
 // stock is tracked live in the app, and README.md for what's needed to make
 // stock levels persist across visitors/devices via a real database.

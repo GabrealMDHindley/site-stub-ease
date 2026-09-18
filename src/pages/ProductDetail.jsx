@@ -18,7 +18,7 @@ export default function ProductDetail() {
   const product = getProductBySlug(slug)
   const [activeImage, setActiveImage] = useState(0)
   const { addItem } = useCart()
-  const { getAvailable, reserve } = useInventory()
+  const { getAvailable, reserve, getPrice } = useInventory()
 
   const skuOptions = product?.componentFamily ? getComponentSkusByFamily(product.componentFamily) : []
   const [selectedSku, setSelectedSku] = useState(skuOptions[0])
@@ -41,7 +41,10 @@ export default function ProductDetail() {
       name: `${product.name.replace(/\s*\(.*\)$/, '')} (${selectedSku.tradeSize}")`,
       tradeSize: selectedSku.tradeSize,
       qty,
-      unitPrice: selectedSku.msrpPerUnit,
+      // getPrice reads the live Stripe price for this SKU if Jeff has set
+      // one, else falls back to the same static math this used to do
+      // directly (selectedSku.msrpPerUnit).
+      unitPrice: getPrice(selectedSku.sku),
     })
     reserve(selectedSku.sku, qty)
     setAdded(true)
@@ -147,10 +150,10 @@ export default function ProductDetail() {
                 <div className="mt-4 flex items-center justify-between">
                   <div>
                     <div className="mono-label text-[10px] text-steel-soft">
-                      {currency(selectedSku.msrpPerUnit)}/unit{qty > 1 && ` × ${qty}`}
+                      {currency(getPrice(selectedSku.sku))}/unit{qty > 1 && ` × ${qty}`}
                     </div>
                     <div className="font-display text-2xl font-semibold text-steel-bright">
-                      {currency(selectedSku.msrpPerUnit * qty)}
+                      {currency(getPrice(selectedSku.sku) * qty)}
                     </div>
                   </div>
                 </div>

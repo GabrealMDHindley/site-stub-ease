@@ -63,11 +63,21 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   `{ name, company, email, phone, …results, tradeSize, floors, stubUpsPerFloor, damageRate,
   laborCost }`; contact page `{ firstName, lastName, company, email, phone, reason, details,
   source: 'contact-page' }`. Returns 200 even if downstream forwarding fails.
-- `/api/checkout` creates a Stripe Checkout session with `STRIPE_SECRET_KEY`. Prices are
-  computed server-side per exact SKU from `src/data/inventory.js` (kits by box, components
-  by piece) via Stripe's dynamic `price_data` — no Stripe Dashboard Products/Prices to
-  create or keep in sync. Order contents (sku + qty) ride along in the session's
-  `metadata.order` for the webhook to read back. Returns 500 until the key is set.
+- **Pricing is Stripe-managed (2026-09-18).** Jeff edits a Price's amount directly in the
+  Stripe Dashboard; the site reads it live via `/api/prices` and checkout charges the same
+  Price via `/api/checkout`, matched by that Price's `lookup_key` (must equal the SKU code,
+  e.g. `SE2-34-8-10` — see `api/_lib/stripePrices.js`). A SKU with no `lookup_key` set falls
+  back to a price computed from `src/data/inventory.js` (kits by box, components by piece)
+  via Stripe's dynamic `price_data`, so checkout still works for anything not migrated to a
+  real Stripe Price yet. `/api/prices` (GET) is what `Products.jsx`/`ProductDetail.jsx`
+  display, through `InventoryContext`'s `getPrice(sku)` — never read `msrpPerUnit` directly
+  in a component; always go through `getPrice` so displayed and charged prices can't drift
+  apart. Order contents (sku + qty) ride along in the checkout session's `metadata.order`
+  for the webhook to read back. Checkout returns 500 until `STRIPE_SECRET_KEY` is set.
+- `/api/prices` (GET) returns every SKU that has a matching Stripe Price, `{ sku: {
+  unitAmount (cents), currency, id } }`. In-memory cached 60s per warm instance — not
+  required for correctness, Stripe's API is fast at this site's traffic, just avoids a
+  repeat call on every request.
 - `/api/stripe-webhook` (POST, raw body — `config.api.bodyParser: false`) verifies the
   event with `STRIPE_WEBHOOK_SECRET` and, on `checkout.session.completed`, decrements
   stock in the database for exactly what was paid for. Idempotent per Stripe event id
