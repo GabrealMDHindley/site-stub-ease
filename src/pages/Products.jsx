@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
 import BackorderModal from '../components/BackorderModal.jsx'
@@ -25,6 +25,20 @@ export default function Products() {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const [backorderOpen, setBackorderOpen] = useState(false)
+
+  // Stripe sends the shopper back to /products?checkout=success|cancelled.
+  // Show a one-time banner, then drop the param so a refresh doesn't repeat it.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [checkoutNotice, setCheckoutNotice] = useState(null)
+  useEffect(() => {
+    const result = searchParams.get('checkout')
+    if (result === 'success' || result === 'cancelled') {
+      setCheckoutNotice(result)
+      const next = new URLSearchParams(searchParams)
+      next.delete('checkout')
+      setSearchParams(next, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const [filterTrade, setFilterTrade] = useState('All')
   const [filterHeight, setFilterHeight] = useState('All')
@@ -80,6 +94,36 @@ export default function Products() {
         title="The Complete Stub-EASE II™ System — Every Trade Size, Every Height."
         subtitle="NEC 300.15(F) / 300.17(F) compliant. Configure your kit below, or order individual components from current stock."
       />
+
+      {checkoutNotice && (
+        <div className="mx-auto max-w-7xl px-6 md:px-10">
+          <div
+            role="status"
+            className={`hud-frame mt-8 flex items-start justify-between gap-6 border p-6 ${
+              checkoutNotice === 'success' ? 'border-signal bg-signal/10' : 'border-steel-line bg-steel-panel/60'
+            }`}
+          >
+            <div>
+              <div className="mono-label text-[10px] text-signal">
+                {checkoutNotice === 'success' ? 'Payment received' : 'Checkout cancelled'}
+              </div>
+              <p className="mt-2 text-steel-bright">
+                {checkoutNotice === 'success'
+                  ? 'Thank you. The Stub-EASE team will follow up by email to confirm quantities and delivery.'
+                  : 'Nothing was charged. Add your items again below whenever you are ready.'}
+              </p>
+            </div>
+            <button
+              data-cursor-hover
+              onClick={() => setCheckoutNotice(null)}
+              className="text-steel-soft hover:text-signal"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* KIT CONFIGURATOR */}
       <section id="store" className="py-20">

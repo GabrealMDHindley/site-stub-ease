@@ -86,11 +86,24 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Fall back to the production origin if the request carries no Origin
+    // header (server-to-server calls, some privacy browsers) — Stripe rejects
+    // a session whose redirect URLs are not absolute https URLs.
+    const origin = req.headers.origin || 'https://www.stubease.com'
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
-      success_url: `${req.headers.origin}/products?checkout=success`,
-      cancel_url: `${req.headers.origin}/products?checkout=cancelled`,
+      success_url: `${origin}/products?checkout=success`,
+      cancel_url: `${origin}/products?checkout=cancelled`,
+      // Physical goods: Stripe collects the ship-to address and a phone
+      // number, and creates a Customer record, so every order arrives in the
+      // Stripe Dashboard with who bought it and where it ships. Shipping
+      // charges and tax are NOT added here yet — those need Jeff's policy
+      // (flat rate? free? Stripe Tax?) before they can be wired in.
+      shipping_address_collection: { allowed_countries: ['US'] },
+      phone_number_collection: { enabled: true },
+      customer_creation: 'always',
       // Read back by api/stripe-webhook.js on checkout.session.completed to
       // know exactly which SKUs/quantities to decrement — dynamic price_data
       // line items don't persist as reusable Stripe objects, so this is what
