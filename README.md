@@ -56,8 +56,9 @@ needed.
 3. Clicking "Proceed to Checkout" calls `startCheckout()` → `/api/checkout`, which
    charges the exact Stripe Price for each SKU that has one → redirects to Stripe
    Checkout.
-4. Stripe Dashboard → Developers → Webhooks → Add endpoint →
-   `https://www.stubease.com/api/stripe-webhook` → event `checkout.session.completed`
+4. Stripe Dashboard → Developers → Webhooks → Add destination (older accounts: Add
+   endpoint) → `https://www.stubease.com/api/stripe-webhook` → events
+   `checkout.session.completed` + `checkout.session.async_payment_succeeded`
    → copy the signing secret into Vercel as `STRIPE_WEBHOOK_SECRET`. This is what
    decrements stock when a payment actually completes (see "Inventory" below).
    To test before going live: `stripe listen --forward-to <url>/api/stripe-webhook`

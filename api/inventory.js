@@ -58,6 +58,9 @@ export default async function handler(req, res) {
     if (typeof set === 'number') {
       await kv.set(`stock:${sku}`, set)
     } else if (typeof adjust === 'number') {
+      // Seed from the opening balance if this SKU has never been touched, so
+      // the first adjustment doesn't count from 0 (same rule as the webhook).
+      await kv.set(`stock:${sku}`, initialStockMap()[sku], { nx: true })
       await kv.incrby(`stock:${sku}`, adjust)
     } else {
       return res.status(400).json({ error: 'Provide either { sku, set: <number> } or { sku, adjust: <number> }' })

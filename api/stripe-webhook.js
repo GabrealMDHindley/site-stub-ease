@@ -6,9 +6,11 @@
 // site never touches this.
 //
 // Setup:
-//   1. Stripe Dashboard → Developers → Webhooks → Add endpoint
+//   1. Stripe Dashboard → Developers → Webhooks → Add destination (older
+//      accounts: Add endpoint)
 //      URL: https://www.stubease.com/api/stripe-webhook
-//      Event: checkout.session.completed
+//      Events: checkout.session.completed
+//              checkout.session.async_payment_succeeded
 //   2. Copy the endpoint's "Signing secret" (whsec_...) into Vercel as
 //      STRIPE_WEBHOOK_SECRET.
 //   To test before going live: `stripe listen --forward-to <url>/api/stripe-webhook`
@@ -21,6 +23,13 @@
 import Stripe from 'stripe'
 import getRawBody from 'raw-body'
 import { getKv } from './_lib/kv.js'
+import { initialStockMap } from '../src/data/inventory.js'
+
+// checkout.session.completed fires the moment checkout finishes. For instant
+// methods (cards) the session is already paid; for delayed methods (bank
+// debits) it arrives with payment_status 'unpaid' and async_payment_succeeded
+// follows once the money clears. Stock only moves on a paid session.
+const PAID_EVENTS = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded'])
 
 export const config = {
   api: { bodyParser: false },
@@ -49,10 +58,14 @@ export default async function handler(req, res) {
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
-  if (event.type === 'checkout.session.completed') {
+  if (PAID_EVENTS.has(event.type)) {
     const session = event.data.object
-    const kv = getKv()
 
+    if (session.payment_status !== 'paid') {
+      return res.status(200).json({ received: true, stockUpdated: false, paymentStatus: session.payment_status })
+    }
+
+    const kv = getKv()
     if (!kv) {
       console.warn(
         `stripe-webhook: payment received (session ${session.id}) but no database is connected — stock was NOT decremented. See CLAUDE.md → Inventory.`
@@ -60,9 +73,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ received: true, stockUpdated: false })
     }
 
-    // Stripe retries a webhook it didn't get a 2xx for — this makes a
-    // re-delivery of the same event a no-op instead of double-decrementing.
-    const firstDelivery = await kv.set(`stripe-event:${event.id}`, '1', { nx: true, ex: 60 * 60 * 24 * 7 })
+    // Stripe retries a webhook it didn't get a 2xx for, and a delayed-payment
+    // session produces two paid-looking events. Keying on the session (not the
+    // event) makes every delivery after the first a no-op instead of a
+    // double-decrement.
+    const firstDelivery = await kv.set(`stripe-order:${session.id}`, '1', { nx: true, ex: 60 * 60 * 24 * 7 })
     if (firstDelivery === null) {
       return res.status(200).json({ received: true, duplicate: true })
     }
@@ -74,9 +89,15 @@ export default async function handler(req, res) {
       console.error('stripe-webhook: could not parse metadata.order for session', session.id)
     }
 
+    const baseline = initialStockMap()
     for (const { sku, qty } of order) {
       if (!sku || !qty) continue
-      await kv.decrby(`stock:${sku}`, qty)
+      const key = `stock:${sku}`
+      // A SKU's counter doesn't exist in the database until something touches
+      // it, and DECRBY on a missing key counts down from 0. Seed it with the
+      // opening balance first — NX makes this a no-op once the key exists.
+      if (baseline[sku] !== undefined) await kv.set(key, baseline[sku], { nx: true })
+      await kv.decrby(key, qty)
     }
   }
 

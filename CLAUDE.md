@@ -79,9 +79,13 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   required for correctness, Stripe's API is fast at this site's traffic, just avoids a
   repeat call on every request.
 - `/api/stripe-webhook` (POST, raw body — `config.api.bodyParser: false`) verifies the
-  event with `STRIPE_WEBHOOK_SECRET` and, on `checkout.session.completed`, decrements
-  stock in the database for exactly what was paid for. Idempotent per Stripe event id
-  (7-day dedupe key) so a retried delivery never double-decrements. If no database is
+  event with `STRIPE_WEBHOOK_SECRET` and, on `checkout.session.completed` or
+  `checkout.session.async_payment_succeeded` with `payment_status: 'paid'`, decrements
+  stock in the database for exactly what was paid for. Idempotent per Checkout Session
+  id (7-day dedupe key) so a retried delivery — or the two paid events a delayed
+  payment method produces — never double-decrements. A SKU's counter is seeded from
+  the `src/data/inventory.js` opening balance the first time it is touched (`SET NX`),
+  so the first sale counts down from the real number, not from 0. If no database is
   connected it logs a warning and still returns 200 (Stripe requires 2xx; the payment is
   real either way, only the stock bookkeeping is skipped).
 - `/api/inventory` (GET) returns real shared stock once a database is connected, or the
