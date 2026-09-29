@@ -14,6 +14,7 @@ import Testimonials from './pages/Testimonials.jsx'
 import Contact from './pages/Contact.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { InventoryProvider } from './lib/InventoryContext.jsx'
+import { trackPageview } from './lib/analytics.js'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -30,6 +31,17 @@ function ScrollToTop() {
   return null
 }
 
+// Counts one page view per route change for the CRM's "Website visitors"
+// tool (cookie-free; see src/lib/analytics.js). Hash-only changes such as
+// "/#roi-calculator" are the same page and don't count again.
+function PageviewTracker() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    trackPageview(pathname)
+  }, [pathname])
+  return null
+}
+
 export default function App() {
   const [loading, setLoading] = useState(true)
 
@@ -41,6 +53,7 @@ export default function App() {
           <CustomCursor />
           <Navbar />
           <ScrollToTop />
+          <PageviewTracker />
           <main>
             <Routes>
               <Route path="/" element={<Home />} />
