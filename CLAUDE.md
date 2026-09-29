@@ -40,7 +40,11 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
     `testimonials.js` (Sam Tarbuck, Tim Flores, founder quote).
 - `src/config/features.js` — `CHECKOUT_ENABLED`, `SHOW_PRICING` (both `true`). Flip to
   hide cart / prices site-wide without touching anything else.
-- `src/lib/` — `integrations.js` (`submitLead` → POST `/api/lead`; `startCheckout` →
+- `src/lib/` — `analytics.js` (cookie-free page-view beacon → the CRM's
+  `POST https://crm-stub-ease.vercel.app/api/analytics`, one per route change via
+  `PageviewTracker` in `App.jsx`; only sends from stubease.com / www.stubease.com, never
+  from previews or localhost; feeds the CRM's Marketing → Website visitors tool — if the
+  CRM moves to a custom domain, update `ENDPOINT`), `integrations.js` (`submitLead` → POST `/api/lead`; `startCheckout` →
   POST `/api/checkout`), `InventoryContext.jsx` (per-browser stock in localStorage key
   `stubease-inventory-v1` — **not shared across visitors**), `CartContext.jsx`.
 - `src/index.css` — Tailwind layers + utilities `.bp-grid`, `.bp-grid-fine`, `.hud-frame`,
