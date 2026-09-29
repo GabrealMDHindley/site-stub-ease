@@ -16,7 +16,7 @@ import { initialStockMap, getSkuRecord } from '../data/inventory.js'
 // Prices are Stripe-managed by design (2026-09-18): Jeff edits a Price's
 // amount directly in the Stripe Dashboard and it's live on the site and at
 // checkout within a minute (see the TTL below), no code change needed.
-// src/data/inventory.js's msrpPerUnit fields are the fallback only — do not
+// src/data/inventory.js's price fields (pricePerBox / msrpPerUnit) are the fallback only — do not
 // "fix" a price customers report as wrong by editing that file; check the
 // matching Stripe Price first.
 //
@@ -87,13 +87,13 @@ export function InventoryProvider({ children }) {
 
   // Price per box (kits) or per piece (components) — matches what
   // api/checkout.js actually charges: Stripe's price if this SKU has one,
-  // else the same static computation (msrpPerUnit × pack) used before
-  // Stripe pricing existed.
+  // else the static fallback from src/data/inventory.js (getSkuRecord(sku).price
+  // — a kit's pricePerBox, a component's per-piece price).
   const getPrice = useCallback(
     (sku) => {
       if (sku in livePrices) return livePrices[sku]
       const record = getSkuRecord(sku)
-      return record ? record.msrpPerUnit * record.pack : 0
+      return record ? record.price : 0
     },
     [livePrices]
   )

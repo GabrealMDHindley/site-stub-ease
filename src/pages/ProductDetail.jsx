@@ -43,7 +43,7 @@ export default function ProductDetail() {
       qty,
       // getPrice reads the live Stripe price for this SKU if Jeff has set
       // one, else falls back to the same static math this used to do
-      // directly (selectedSku.msrpPerUnit).
+      // directly (selectedSku.pricePerBox / msrpPerUnit).
       unitPrice: getPrice(selectedSku.sku),
     })
     reserve(selectedSku.sku, qty)

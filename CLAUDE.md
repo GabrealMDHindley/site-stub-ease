@@ -66,11 +66,12 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
 - **Pricing is Stripe-managed (2026-09-18).** Jeff edits a Price's amount directly in the
   Stripe Dashboard; the site reads it live via `/api/prices` and checkout charges the same
   Price via `/api/checkout`, matched by that Price's `lookup_key` (must equal the SKU code,
-  e.g. `SE2-34-8-10` — see `api/_lib/stripePrices.js`). A SKU with no `lookup_key` set falls
+  e.g. `SE2-34-8-10`, or CSUE's price-sheet spelling of it, `SEII-34-8-10` — see
+  `api/_lib/stripePrices.js`). A SKU with no `lookup_key` set falls
   back to a price computed from `src/data/inventory.js` (kits by box, components by piece)
   via Stripe's dynamic `price_data`, so checkout still works for anything not migrated to a
   real Stripe Price yet. `/api/prices` (GET) is what `Products.jsx`/`ProductDetail.jsx`
-  display, through `InventoryContext`'s `getPrice(sku)` — never read `msrpPerUnit` directly
+  display, through `InventoryContext`'s `getPrice(sku)` — never read `pricePerBox`/`msrpPerUnit` directly
   in a component; always go through `getPrice` so displayed and charged prices can't drift
   apart. Order contents (sku + qty) ride along in the checkout session's `metadata.order`
   for the webhook to read back. Checkout returns 500 until `STRIPE_SECRET_KEY` is set.

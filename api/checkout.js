@@ -50,11 +50,10 @@ export default async function handler(req, res) {
       // A real Stripe Price exists for this SKU — charge exactly that.
       line_items.push({ price: live.id, quantity: qty })
     } else {
-      // No Stripe Price registered yet for this SKU — fall back to a price
-      // computed from the static catalog. Kits are priced and sold by the
-      // box (unit price × pack size); components per individual piece
-      // (pack is always 1 for them).
-      const unitAmount = Math.round(record.msrpPerUnit * record.pack * 100)
+      // No Stripe Price registered yet for this SKU — fall back to the
+      // static catalog price (src/data/inventory.js): kits are priced and
+      // sold by the box (pricePerBox), components per individual piece.
+      const unitAmount = Math.round(record.price * 100)
       if (!Number.isFinite(unitAmount) || unitAmount <= 0) continue
 
       const product = getProductBySlug(item.slug) || (record.kind === 'kit' ? getProductBySlug('stub-ease-ii-system') : null)

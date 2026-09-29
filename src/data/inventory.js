@@ -1,11 +1,19 @@
-// Sourced directly from CSUE Technologies, Inc. — Inventory Valuation Report
-// (Based on PO EG2605016 | Pricing: 25% tariff · $2 boxing · 4× markup | Aug 2026)
+// Stock: sourced directly from CSUE Technologies, Inc. — Inventory Valuation Report
+// (Based on PO EG2605016 | Aug 2026).
+// Kit prices: CSUE's kit price sheet, Sep 2026 ("KITS — the value purchase"),
+// which prices each kit BY THE BOX — one price for the 10-pack and one for the
+// 25-pack of each trade size; the 8" and 12" heights are priced the same.
+// landedPerUnit / distPerUnit are still the Aug 2026 valuation figures (the
+// Sep 2026 sheet did not restate them) — internal reference only; nothing on
+// the site reads them.
 //
 // "Units on Hand" = individual kit pieces currently in stock (QOH boxes × pack size).
-// Kits are sold by the box (pack of 10 or 25); Landed/MSRP/Dist prices below are
-// PER INDIVIDUAL UNIT — multiply by pack size for the per-box price.
+// Kits are sold by the box (pack of 10 or 25): pricePerBox is what a shopper pays
+// for one box; the per-unit figure shown on the site is pricePerBox ÷ pack.
+// Component prices (caps, stands) are per individual piece.
 //
-// PRICING HERE IS A FALLBACK ONLY (as of 2026-09-18). The real, current price
+// PRICING HERE IS A FALLBACK ONLY (as of 2026-09-18; amounts updated
+// 2026-09-29 from the Sep 2026 sheet). The real, current price
 // of record is whatever Jeff has set in the Stripe Dashboard for that SKU's
 // Price (matched by lookup_key — see api/_lib/stripePrices.js). The site
 // reads live from Stripe via /api/prices and only falls back to the numbers
@@ -19,14 +27,14 @@
 // stock levels persist across visitors/devices via a real database.
 
 export const kitSkus = [
-  { sku: 'SE2-34-8-10', tradeSize: '3/4', height: '8', pack: 10, qohBoxes: 100, unitsOnHand: 1000, landedPerUnit: 2.26, msrpPerUnit: 9.05, distPerUnit: 7.69 },
-  { sku: 'SE2-34-8-25', tradeSize: '3/4', height: '8', pack: 25, qohBoxes: 60, unitsOnHand: 1500, landedPerUnit: 1.96, msrpPerUnit: 7.85, distPerUnit: 6.67 },
-  { sku: 'SE2-34-12-10', tradeSize: '3/4', height: '12', pack: 10, qohBoxes: 160, unitsOnHand: 1600, landedPerUnit: 2.33, msrpPerUnit: 9.30, distPerUnit: 7.91 },
-  { sku: 'SE2-34-12-25', tradeSize: '3/4', height: '12', pack: 25, qohBoxes: 86, unitsOnHand: 2150, landedPerUnit: 1.99, msrpPerUnit: 7.95, distPerUnit: 6.76 },
-  { sku: 'SE2-1-8-10', tradeSize: '1', height: '8', pack: 10, qohBoxes: 100, unitsOnHand: 1000, landedPerUnit: 2.55, msrpPerUnit: 10.20, distPerUnit: 8.67 },
-  { sku: 'SE2-1-8-25', tradeSize: '1', height: '8', pack: 25, qohBoxes: 60, unitsOnHand: 1500, landedPerUnit: 2.25, msrpPerUnit: 9.00, distPerUnit: 7.65 },
-  { sku: 'SE2-1-12-10', tradeSize: '1', height: '12', pack: 10, qohBoxes: 160, unitsOnHand: 1600, landedPerUnit: 2.61, msrpPerUnit: 10.45, distPerUnit: 8.88 },
-  { sku: 'SE2-1-12-25', tradeSize: '1', height: '12', pack: 25, qohBoxes: 86, unitsOnHand: 2150, landedPerUnit: 2.28, msrpPerUnit: 9.10, distPerUnit: 7.74 },
+  { sku: 'SE2-34-8-10', tradeSize: '3/4', height: '8', pack: 10, qohBoxes: 100, unitsOnHand: 1000, landedPerUnit: 2.26, pricePerBox: 164.60, distPerUnit: 7.69 },
+  { sku: 'SE2-34-8-25', tradeSize: '3/4', height: '8', pack: 25, qohBoxes: 60, unitsOnHand: 1500, landedPerUnit: 1.96, pricePerBox: 390.93, distPerUnit: 6.67 },
+  { sku: 'SE2-34-12-10', tradeSize: '3/4', height: '12', pack: 10, qohBoxes: 160, unitsOnHand: 1600, landedPerUnit: 2.33, pricePerBox: 164.60, distPerUnit: 7.91 },
+  { sku: 'SE2-34-12-25', tradeSize: '3/4', height: '12', pack: 25, qohBoxes: 86, unitsOnHand: 2150, landedPerUnit: 1.99, pricePerBox: 390.93, distPerUnit: 6.76 },
+  { sku: 'SE2-1-8-10', tradeSize: '1', height: '8', pack: 10, qohBoxes: 100, unitsOnHand: 1000, landedPerUnit: 2.55, pricePerBox: 188.00, distPerUnit: 8.67 },
+  { sku: 'SE2-1-8-25', tradeSize: '1', height: '8', pack: 25, qohBoxes: 60, unitsOnHand: 1500, landedPerUnit: 2.25, pricePerBox: 446.50, distPerUnit: 7.65 },
+  { sku: 'SE2-1-12-10', tradeSize: '1', height: '12', pack: 10, qohBoxes: 160, unitsOnHand: 1600, landedPerUnit: 2.61, pricePerBox: 188.00, distPerUnit: 8.88 },
+  { sku: 'SE2-1-12-25', tradeSize: '1', height: '12', pack: 25, qohBoxes: 86, unitsOnHand: 2150, landedPerUnit: 2.28, pricePerBox: 446.50, distPerUnit: 7.74 },
 ]
 
 export const componentSkus = [
@@ -42,27 +50,32 @@ export const getKitSku = (tradeSize, height, pack) =>
 export const getComponentSkusByFamily = (family) =>
   componentSkus.filter((c) => c.sku.startsWith(family))
 
-// Representative per-unit MSRP for the homepage ROI calculator, which only
+// Representative per-unit price for the homepage ROI calculator, which only
 // asks for trade size (not height/pack). Uses the 25-pack tier — the lowest
 // per-unit price point, and the most realistic stand-in for a full project
 // order — averaged across the 8"/12" height options for that trade size.
+// Derived from pricePerBox so it can never drift from the Products page.
+const avgPerUnit25 = (tradeSize) => {
+  const tier = kitSkus.filter((k) => k.tradeSize === tradeSize && k.pack === 25)
+  return tier.reduce((sum, k) => sum + k.pricePerBox / k.pack, 0) / tier.length
+}
 export const roiRepresentativeMsrp = {
-  '3/4': (7.85 + 7.95) / 2, // = 7.90
-  '1': (9.0 + 9.1) / 2, // = 9.05
+  '3/4': avgPerUnit25('3/4'), // 390.93 / 25 = 15.6372
+  '1': avgPerUnit25('1'), // 446.50 / 25 = 17.86
 }
 
 // Unified lookup used by both the client (InventoryContext) and the server
 // (api/checkout.js, api/inventory.js) so a SKU never gets priced two different
-// ways. `pack` is 1 for components (stock/price is per individual piece);
-// kits are sold and priced by the box.
+// ways. `price` is the fallback price of ONE sellable unit — a box for kits
+// (pricePerBox), a single piece for components (pack is always 1 for them).
 export function getSkuRecord(sku) {
   const kit = kitSkus.find((k) => k.sku === sku)
   if (kit) {
-    return { sku, kind: 'kit', pack: kit.pack, msrpPerUnit: kit.msrpPerUnit, tradeSize: kit.tradeSize, height: kit.height }
+    return { sku, kind: 'kit', pack: kit.pack, price: kit.pricePerBox, tradeSize: kit.tradeSize, height: kit.height }
   }
   const component = componentSkus.find((c) => c.sku === sku)
   if (component) {
-    return { sku, kind: 'component', pack: 1, msrpPerUnit: component.msrpPerUnit, tradeSize: component.tradeSize, name: component.name }
+    return { sku, kind: 'component', pack: 1, price: component.msrpPerUnit, tradeSize: component.tradeSize, name: component.name }
   }
   return null
 }
