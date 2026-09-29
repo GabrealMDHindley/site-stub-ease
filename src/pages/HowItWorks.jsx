@@ -348,7 +348,7 @@ export default function HowItWorks() {
           <Reveal delay={0.08} className="hud-frame mt-8 overflow-hidden border border-steel-line bg-steel-panel">
             <img
               src="https://stubease.pplx.app/images/stub-ease-install-chart.jpg"
-              alt="Stub-EASE™ system cross-section diagram"
+              alt="Stub-EASE® system cross-section diagram"
               className="w-full object-contain p-4"
             />
           </Reveal>

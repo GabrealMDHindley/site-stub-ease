@@ -50,7 +50,7 @@ export default function Safety() {
             </p>
             <p className="mt-4 italic text-steel-bright">
               "The litigation that followed settled for over $1.3 million. That incident is the genesis of
-              Stub-EASE™. I did not walk away from it and move on to the next job. I spent the next twenty years
+              Stub-EASE®. I did not walk away from it and move on to the next job. I spent the next twenty years
               figuring out how to make sure it could never happen again."
             </p>
             <div className="mono-label mt-6 text-xs text-signal">
