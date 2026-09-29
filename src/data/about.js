@@ -12,7 +12,7 @@ export const milestones = [
   {
     year: '2019',
     title: 'First Patent Issued',
-    body: 'US 10,320,167 B2 issued, protecting core elements of the Stub-EASE™ system design.',
+    body: 'US 10,320,167 B2 issued, protecting core elements of the Stub-EASE® system design.',
   },
   {
     year: '2020',

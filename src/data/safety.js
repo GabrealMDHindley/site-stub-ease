@@ -14,7 +14,7 @@ export const settlements = [
   {
     amount: '$1,300,000',
     note: null,
-    body: 'High-rise CCIP project. A colleague injured on a conduit stub-up required multiple surgeries and was permanently unable to return to work. This incident is the direct origin of the Stub-EASE™ product line.',
+    body: 'High-rise CCIP project. A colleague injured on a conduit stub-up required multiple surgeries and was permanently unable to return to work. This incident is the direct origin of the Stub-EASE® product line.',
     tag: 'Illinois · CCIP high-rise project',
   },
   {

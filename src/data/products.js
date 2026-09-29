@@ -190,12 +190,12 @@ export const products = [
     slug: 'stub-ease-original',
     status: 'special-order',
     statusLabel: 'Special Order',
-    name: 'Stub-EASE™ Original',
-    tagline: 'The first-generation Stub-EASE™ — the product that started it all.',
+    name: 'Stub-EASE® Original',
+    tagline: 'The first-generation Stub-EASE® — the product that started it all.',
     image: 'https://stubease.pplx.app/images/products/stubease-original-all-sizes.png',
     gallery: ['https://stubease.pplx.app/images/products/stubease-original-all-sizes.png'],
     description:
-      'The first-generation Stub-EASE™ — the product that launched CSUE Technologies. Not in current production inventory, but available for special order.',
+      'The first-generation Stub-EASE® — the product that launched CSUE Technologies. Not in current production inventory, but available for special order.',
     specs: [
       { label: 'SKU SE1-050', value: '1/2" trade size' },
       { label: 'SKU SE1-075', value: '3/4" trade size' },
@@ -203,7 +203,7 @@ export const products = [
       { label: 'SKU SE1-150', value: '1-1/2" trade size' },
     ],
     cta: 'Request Special Order',
-    ctaLink: 'mailto:info@stubease.com?subject=Special Order — Stub-EASE™ Original',
+    ctaLink: 'mailto:info@stubease.com?subject=Special Order — Stub-EASE® Original',
     purchasable: false,
   },
 ]
