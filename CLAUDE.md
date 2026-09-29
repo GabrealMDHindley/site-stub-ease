@@ -32,9 +32,10 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
     `stand-ease` components "Included in Kit Only"; `seg18-riser-ease` and `stub-down`
     coming soon; `stub-ease-original` special order) with slug/status/specs/gallery/cta,
     plus `submittals` (7 PDFs) and `metallicTransitionOptions`.
-  - `inventory.js`: kit SKUs `SE2-{34|1}-{8|12}-{10|25}` and component SKUs with QOH and
-    landed / MSRP / distributor per-unit prices from the CSUE Inventory Valuation Report
-    (PO EG2605016, Aug 2026); `roiRepresentativeMsrp`.
+  - `inventory.js`: kit SKUs `SE2-{34|1}-{8|12}-{10|25}` and component SKUs with QOH (2026
+    Price List) and **MSRP only** (CSUE Master Pricing 2026 — the only tier CSUE
+    advertises; Wholesale/B2B/Committed and landed costs are internal and live in the CRM,
+    never in this public repo); `roiRepresentativeMsrp`.
   - `roles.js` (audience tabs: concrete, electrical, gc, …), `safety.js` (settlements,
     OSHA record, materials), `about.js` (milestones, differentiators, values),
     `testimonials.js` (Sam Tarbuck, Tim Flores, founder quote).

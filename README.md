@@ -132,11 +132,13 @@ per product.
 
 ## Pricing & inventory
 
-`src/data/inventory.js` holds the real SKU-level pricing and stock from
-CSUE Technologies' Inventory Valuation Report (PO EG2605016, Aug 2026) —
-all 8 kit SKUs (by trade size × height × pack size) and the 4 loose
-component SKUs (caps and supports by trade size), each with landed cost,
-MSRP, and distributor price per unit, plus current stock.
+`src/data/inventory.js` holds the real SKU-level pricing and stock — all 8
+kit SKUs (by trade size × height × pack size) and the 4 loose component
+SKUs (caps and supports by trade size). Prices are **MSRP only**, from CSUE
+Master Pricing 2026 (effective September 2026) — the only tier CSUE
+advertises. Wholesale, B2B and committed-buyer prices and landed costs are
+internal and stay in the CRM, never in this public repo. Stock is from the
+2026 Price List (superseding the Aug 2026 Inventory Valuation Report).
 
 **Kits are sold by the box** (a pack of 10 or 25) — the price shown and
 added to cart is always `MSRP per unit × pack size`, matching how the real

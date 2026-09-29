@@ -1,7 +1,7 @@
 // All copy, specs, SKUs, pricing, and figures below are sourced directly
 // from stubease.com (homepage, how-it-works, products, safety, about,
-// contact) plus the CSUE Technologies Inventory Valuation Report (PO
-// EG2605016, Aug 2026) for real SKU pricing and stock. Nothing invented.
+// contact); SKU pricing (MSRP) and stock live in src/data/inventory.js, from
+// CSUE Master Pricing 2026 and the 2026 Price List. Nothing invented.
 
 export const submittals = [
   {
