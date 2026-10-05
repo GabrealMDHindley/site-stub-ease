@@ -1,21 +1,63 @@
 // Vercel Serverless Function — GET/POST /api/inventory
 //
-// GET returns real, shared stock once a database is connected (see
-// CLAUDE.md → Inventory). Until then it returns the static August 2026
-// opening balance from src/data/inventory.js so the site keeps working —
-// every visitor sees the same starting numbers, they just don't move.
+// GET returns the shared stock every visitor sees, from (first that answers):
+//   1. the Stub-EASE CRM — the stock of record. When a sale comes in through
+//      Stripe the CRM records it and takes the stock down (crm-stub-ease:
+//      api/_lib/stripe-sales.ts), and its public stock endpoint pulls any new
+//      Stripe sales in before answering, so this request also helps a fresh
+//      sale land in the CRM. Website SKU names; kits in boxes, parts in pieces;
+//      no prices.
+//   2. a connected KV database (see CLAUDE.md → Inventory), if one is set up;
+//   3. the static opening balance in src/data/inventory.js.
 //
-// The real decrement happens in api/stripe-webhook.js when a Stripe payment
-// completes, not here. POST is a manual admin adjustment (restock, correction),
-// gated behind INVENTORY_ADMIN_KEY — disabled until that env var is set.
+// POST is a manual admin adjustment to the KV copy (restock, correction), gated
+// behind INVENTORY_ADMIN_KEY — disabled until that env var is set. Day to day,
+// stock is edited in the CRM's Inventory page.
 
 import { allSkus, initialStockMap } from '../src/data/inventory.js'
 import { getKv } from './_lib/kv.js'
+
+const CRM_STOCK_URL =
+  process.env.CRM_STOCK_URL || 'https://crm-stub-ease.vercel.app/api/inventory?action=public-stock'
+const CRM_TIMEOUT_MS = 6000
+
+// The CRM's stock for every SKU this site sells, or null if the CRM can't be reached.
+async function crmStock() {
+  try {
+    const res = await fetch(CRM_STOCK_URL, {
+      headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(CRM_TIMEOUT_MS),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data?.ok || !data.stock || typeof data.stock !== 'object') return null
+    const stock = {}
+    for (const sku of allSkus) {
+      const n = Number(data.stock[sku])
+      if (Number.isFinite(n)) stock[sku] = Math.max(0, Math.floor(n))
+    }
+    return Object.keys(stock).length > 0 ? stock : null
+  } catch (err) {
+    console.warn('[inventory] CRM stock unavailable, falling back:', err?.message || err)
+    return null
+  }
+}
 
 export default async function handler(req, res) {
   const kv = getKv()
 
   if (req.method === 'GET') {
+    const fromCrm = await crmStock()
+    if (fromCrm) {
+      res.setHeader('Cache-Control', 'no-store')
+      return res.status(200).json({
+        ok: true,
+        source: 'crm',
+        kvConnected: Boolean(kv),
+        stock: { ...initialStockMap(), ...fromCrm },
+      })
+    }
+
     if (!kv) {
       return res.status(200).json({
         ok: true,

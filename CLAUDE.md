@@ -94,8 +94,15 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   so the first sale counts down from the real number, not from 0. If no database is
   connected it logs a warning and still returns 200 (Stripe requires 2xx; the payment is
   real either way, only the stock bookkeeping is skipped).
-- `/api/inventory` (GET) returns real shared stock once a database is connected, or the
-  static opening balance from `src/data/inventory.js` as a fallback. `api/_lib/kv.js`
+- `/api/inventory` (GET) returns **the CRM's stock** — the stock of record since
+  2026-10-05: the CRM (crm-stub-ease) records every Stripe sale (website checkout) and
+  takes its stock down, so the site and the CRM count the same boxes. It reads
+  `https://crm-stub-ease.vercel.app/api/inventory?action=public-stock` (override with
+  `CRM_STOCK_URL`; website SKU names, kits in boxes, parts in pieces, no prices) — and
+  that call also makes the CRM pull any new Stripe sale in, so a sale lands in the CRM
+  as soon as the site is visited (the buyer's return after paying included). Falls back
+  to a connected KV database, then the static opening balance in
+  `src/data/inventory.js`, if the CRM doesn't answer within 6 s. `api/_lib/kv.js`
   reads either `KV_REST_API_URL`/`KV_REST_API_TOKEN` or `UPSTASH_REDIS_REST_URL`/
   `UPSTASH_REDIS_REST_TOKEN` — whichever a connected database adds. POST is a manual
   admin adjustment, gated behind `INVENTORY_ADMIN_KEY` (unset = disabled).
