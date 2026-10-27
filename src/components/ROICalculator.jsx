@@ -37,7 +37,16 @@ export default function ROICalculator() {
   const handleLeadSubmit = async (e) => {
     e.preventDefault()
     setSubmitting(true)
-    await submitLead({ ...lead, ...results, tradeSize, floors, stubUpsPerFloor, damageRate, laborCost })
+    await submitLead({
+      ...lead,
+      ...results,
+      tradeSize,
+      floors,
+      stubUpsPerFloor,
+      damageRate,
+      laborCost,
+      source: 'roi-calculator',
+    })
     setSubmitting(false)
     setUnlocked(true)
   }
