@@ -5,7 +5,12 @@
 // Runs server-side so API keys never touch the browser.
 //
 // Required environment variables (set in Vercel → Project → Settings → Environment Variables):
-//   GHL_WEBHOOK_URL     — GoHighLevel "Inbound Webhook" trigger URL for this pipeline
+//   GHL_WEBHOOK_URL          — GoHighLevel "Inbound Webhook" trigger URL for this pipeline
+//   GHL_ESTIMATE_WEBHOOK_URL — optional. A SEPARATE GoHighLevel "Inbound Webhook" trigger
+//                              URL for a standalone workflow that only fires for ROI
+//                              calculator submissions (lead.source === 'roi-calculator').
+//                              Unset = no-op; the lead still reaches GHL_WEBHOOK_URL as
+//                              normal, it just isn't also sent here.
 //   CUSTOM_CRM_URL       — your AI-Studio-built CRM's lead-intake endpoint
 //   CUSTOM_CRM_API_KEY   — auth token/header value your custom CRM expects (if any)
 
@@ -29,6 +34,20 @@ export default async function handler(req, res) {
   if (process.env.GHL_WEBHOOK_URL) {
     forwards.push(
       fetch(process.env.GHL_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lead),
+      })
+    )
+  }
+
+  // 1b. A second, standalone GHL workflow dedicated to estimate requests only —
+  //     e.g. "notify the owner the moment someone gets a savings report," kept
+  //     completely separate from the general Contact Form Submission workflow
+  //     above so editing one can never break the other.
+  if (process.env.GHL_ESTIMATE_WEBHOOK_URL && lead.source === 'roi-calculator') {
+    forwards.push(
+      fetch(process.env.GHL_ESTIMATE_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lead),
