@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
+import GhlCalendarEmbed from '../components/GhlCalendarEmbed.jsx'
 import { submitLead } from '../lib/integrations.js'
+import { GHL_CALENDAR_URL } from '../config/features.js'
 
 const reasons = [
   'Request a Quote / Pricing',
@@ -99,18 +101,31 @@ export default function Contact() {
             </div>
 
             {tab === 'meeting' ? (
-              <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8 text-center">
-                <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
-                <p className="mt-2 text-sm text-steel-soft">
-                  Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area site
-                  visits.
-                </p>
-                <p className="mono-label mt-6 text-[10px] text-steel-soft">Online booking coming soon.</p>
-                <p className="mt-2 text-sm text-steel-soft">In the meantime, email directly:</p>
-                <a href="mailto:info@stubease.com" data-cursor-hover className="mt-1 block font-mono text-signal hover:underline">
-                  info@stubease.com
-                </a>
-              </div>
+              GHL_CALENDAR_URL ? (
+                <div className="hud-frame overflow-hidden border border-steel-line bg-steel-panel/40">
+                  <div className="p-8 pb-0 text-center">
+                    <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
+                    <p className="mt-2 text-sm text-steel-soft">
+                      Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area
+                      site visits.
+                    </p>
+                  </div>
+                  <GhlCalendarEmbed src={GHL_CALENDAR_URL} title="Schedule a meeting with Jeff Krause" />
+                </div>
+              ) : (
+                <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8 text-center">
+                  <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
+                  <p className="mt-2 text-sm text-steel-soft">
+                    Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area site
+                    visits.
+                  </p>
+                  <p className="mono-label mt-6 text-[10px] text-steel-soft">Online booking coming soon.</p>
+                  <p className="mt-2 text-sm text-steel-soft">In the meantime, email directly:</p>
+                  <a href="mailto:info@stubease.com" data-cursor-hover className="mt-1 block font-mono text-signal hover:underline">
+                    info@stubease.com
+                  </a>
+                </div>
+              )
             ) : status === 'done' ? (
               <div className="hud-frame border border-signal/50 bg-void p-10 text-center">
                 <div className="font-display text-2xl text-steel-bright">Message Sent</div>
