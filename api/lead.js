@@ -115,8 +115,9 @@ export default async function handler(req, res) {
 
   // 2b. A second, standalone GHL workflow dedicated to estimate requests only, kept
   //     separate from the general workflow above so editing one can't break the other.
-  if (process.env.GHL_ESTIMATE_WEBHOOK_URL && lead.source === 'roi-calculator') {
-    forwards.push(post('ghl-estimate-webhook', process.env.GHL_ESTIMATE_WEBHOOK_URL, {}, body))
+  const ghlEstimateUrl = (process.env.GHL_ESTIMATE_WEBHOOK_URL || '').trim()
+  if (ghlEstimateUrl && ghlEstimateUrl !== (process.env.GHL_WEBHOOK_URL || '').trim() && lead.source === 'roi-calculator') {
+    forwards.push(post('ghl-estimate-webhook', ghlEstimateUrl, {}, body))
   }
 
   // 3. Any other custom lead endpoint — skipped when it is the CRM intake itself.

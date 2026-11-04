@@ -41,12 +41,11 @@ function publicReview(r) {
     location: str(r.location),
     rating: Math.min(5, Math.max(1, Math.round(Number(r.rating) || 0))),
     body: str(r.body),
-    approvedAt: r.approvedAt || null,
+    approvedAt: typeof r.approvedAt === 'string' ? r.approvedAt : null,
   }
 }
 
 async function listReviews(res) {
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
   try {
     const r = await fetch(crmUrl('public'), {
       headers: { accept: 'application/json' },
@@ -56,9 +55,12 @@ async function listReviews(res) {
     const data = await r.json()
     const list = Array.isArray(data?.reviews) ? data.reviews : null
     if (!list) throw new Error('CRM response had no reviews list')
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=60')
     return res.status(200).json({ ok: true, reviews: list.filter((x) => x && x.body && x.name).map(publicReview) })
   } catch (err) {
     console.error('Reviews fetch failed:', err?.message || err)
+    // Never cache a failure — the next visitor should retry the CRM.
+    res.setHeader('Cache-Control', 'no-store')
     return res.status(200).json({ ok: false, reviews: [] })
   }
 }
@@ -126,6 +128,15 @@ async function submitReview(req, res) {
   }
 
   const data = await r.json().catch(() => ({}))
+  // Auth / config / server faults on the CRM side are our problem, not the visitor's:
+  // log the detail, show a generic message, and don't echo CRM internals.
+  if (r.status >= 500 || r.status === 401 || r.status === 403 || r.status === 404) {
+    console.error('Review submit rejected by CRM:', r.status, data?.message || data?.error || '')
+    return res.status(502).json({
+      ok: false,
+      message: "We couldn't reach our review system just now. Please try again in a few minutes, or email info@stubease.com.",
+    })
+  }
   const message =
     (typeof data?.message === 'string' && data.message) ||
     (typeof data?.error === 'string' && data.error) ||

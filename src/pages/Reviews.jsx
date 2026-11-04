@@ -140,13 +140,14 @@ function ReviewForm() {
 
       <div className="col-span-full">
         <span className="mono-label mb-2 block text-[11px] text-steel-soft">{f.fields.rating}</span>
-        <div className="flex gap-3" role="radiogroup" aria-label="Rating">
+        <div className="flex gap-3" role="radiogroup" aria-label="Rating" aria-required="true">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               type="button"
               role="radio"
               aria-checked={form.rating === n}
+              aria-label={`${n} out of 5 — ${ratingLabels[n]}`}
               data-cursor-hover
               onClick={() => setForm({ ...form, rating: n })}
               className={`flex-1 border px-2 py-3 font-mono text-sm transition-colors ${
@@ -164,10 +165,10 @@ function ReviewForm() {
         </div>
       </div>
 
-      <input required minLength={2} maxLength={80} placeholder={f.fields.name} value={form.name} onChange={set('name')} className={inputClass} />
-      <input maxLength={80} placeholder={f.fields.title} value={form.title} onChange={set('title')} className={inputClass} />
-      <input maxLength={80} placeholder={f.fields.company} value={form.company} onChange={set('company')} className={inputClass} />
-      <input maxLength={80} placeholder={f.fields.location} value={form.location} onChange={set('location')} className={inputClass} />
+      <input required minLength={2} maxLength={80} placeholder={f.fields.name} aria-label={f.fields.name} value={form.name} onChange={set('name')} className={inputClass} />
+      <input maxLength={80} placeholder={f.fields.title} aria-label={f.fields.title} value={form.title} onChange={set('title')} className={inputClass} />
+      <input maxLength={80} placeholder={f.fields.company} aria-label={f.fields.company} value={form.company} onChange={set('company')} className={inputClass} />
+      <input maxLength={80} placeholder={f.fields.location} aria-label={f.fields.location} value={form.location} onChange={set('location')} className={inputClass} />
 
       <div className="col-span-full">
         <textarea
@@ -176,6 +177,7 @@ function ReviewForm() {
           maxLength={2000}
           rows={6}
           placeholder={f.fields.body}
+          aria-label={f.fields.body}
           value={form.body}
           onChange={set('body')}
           className={inputClass}
@@ -191,6 +193,7 @@ function ReviewForm() {
         type="email"
         maxLength={254}
         placeholder={f.fields.email}
+        aria-label={f.fields.email}
         value={form.email}
         onChange={set('email')}
         className={`${inputClass} col-span-full`}
