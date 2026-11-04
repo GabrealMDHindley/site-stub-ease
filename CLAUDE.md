@@ -90,7 +90,13 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   damageRate, laborCost, source: 'roi-calculator' }`; contact page `{ firstName, lastName,
   company, email, phone, reason, details, source: 'contact-page' }`.
 - `CUSTOM_CRM_API_KEY` is the shared site→CRM key: it must equal the CRM's `SITE_API_KEY`
-  whenever that is set in the CRM (the CRM then rejects calls without it). Unset on both = open.
+  whenever that is set in the CRM (the CRM then rejects calls without it). **Set it on both.**
+  The CRM trusts the `x-visitor-ip` this site sends only from a caller holding the key; with
+  the key unset on both, the CRM's public endpoints accept any caller and rate-limit by the IP
+  Vercel saw — this site's egress — so all website leads share one bucket (10/hour) and all
+  review submissions one (3/day). The CRM also refuses bodies that aren't `application/json`
+  (both functions send JSON) and answers the lead intake within ~7 s (its GoHighLevel step has
+  one 6 s deadline), inside this site's 10 s forward timeout.
 - `/api/reviews` — GET proxies the CRM's approved reviews
   (`…/api/site?resource=reviews&action=public`; base overridable with `CRM_REVIEWS_URL`, default
   `https://crm-stub-ease.vercel.app/api/site?resource=reviews`, the function appends `&action=`),

@@ -11,7 +11,9 @@
 //                              the contact to GoHighLevel with website-lead tags.
 //   CUSTOM_CRM_API_KEY       — optional shared key sent as `Authorization: Bearer …` to the
 //                              CRM intake (and to CUSTOM_CRM_URL). Must equal the CRM's
-//                              SITE_API_KEY whenever that is set there.
+//                              SITE_API_KEY whenever that is set there. Set it: without it
+//                              the CRM ignores x-visitor-ip and rate-limits every website
+//                              lead as one visitor (this function's egress IP).
 //   GHL_WEBHOOK_URL          — optional GoHighLevel "Inbound Webhook" trigger URL.
 //   GHL_ESTIMATE_WEBHOOK_URL — optional. A SEPARATE GoHighLevel "Inbound Webhook" trigger
 //                              URL for a standalone workflow that only fires for ROI
