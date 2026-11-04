@@ -12,6 +12,7 @@ import Safety from './pages/Safety.jsx'
 import About from './pages/About.jsx'
 import Testimonials from './pages/Testimonials.jsx'
 import Contact from './pages/Contact.jsx'
+import Reviews from './pages/Reviews.jsx'
 import InstallSE2 from './pages/InstallSE2.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { InventoryProvider } from './lib/InventoryContext.jsx'
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/about" element={<About />} />
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/reviews" element={<Reviews />} />
               <Route path="/installse2" element={<InstallSE2 />} />
             </Routes>
           </main>

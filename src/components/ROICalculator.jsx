@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import Reveal from './Reveal.jsx'
+import Honeypot from './Honeypot.jsx'
 import { submitLead } from '../lib/integrations.js'
 import { roiRepresentativeMsrp } from '../data/inventory.js'
 
@@ -22,6 +24,7 @@ export default function ROICalculator() {
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [unlocked, setUnlocked] = useState(false)
   const [lead, setLead] = useState({ name: '', company: '', email: '', phone: '' })
+  const [hp, setHp] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const results = useMemo(() => {
@@ -45,6 +48,7 @@ export default function ROICalculator() {
       stubUpsPerFloor,
       damageRate,
       laborCost,
+      hp,
       source: 'roi-calculator',
     })
     setSubmitting(false)
@@ -182,8 +186,9 @@ export default function ROICalculator() {
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           onSubmit={handleLeadSubmit}
-                          className="mt-6 grid gap-4 overflow-hidden md:grid-cols-2"
+                          className="relative mt-6 grid gap-4 overflow-hidden md:grid-cols-2"
                         >
+                          <Honeypot value={hp} onChange={setHp} />
                           <input
                             required
                             placeholder="Name *"
@@ -249,6 +254,18 @@ export default function ROICalculator() {
                       each damaged stub-up. Actual costs will vary by project conditions, trade size, and contract
                       terms.
                     </p>
+                    <div className="mt-8 flex flex-col items-start gap-4 border-t border-steel-line pt-6 md:flex-row md:items-center md:justify-between">
+                      <p className="max-w-sm text-sm text-steel-soft">
+                        Want to walk through these numbers for your project? Book a call directly on Jeff's calendar.
+                      </p>
+                      <Link
+                        to="/contact?tab=meeting"
+                        data-cursor-hover
+                        className="mono-label whitespace-nowrap bg-signal px-7 py-4 text-xs text-void transition-transform hover:scale-[1.03]"
+                      >
+                        Schedule a call with Jeff
+                      </Link>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

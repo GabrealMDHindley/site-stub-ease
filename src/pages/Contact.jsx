@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
+import Honeypot from '../components/Honeypot.jsx'
+import BookingEmbed from '../components/BookingEmbed.jsx'
 import { submitLead } from '../lib/integrations.js'
 
 const reasons = [
@@ -15,14 +17,23 @@ const reasons = [
 ]
 
 export default function Contact() {
-  const [tab, setTab] = useState('message') // 'message' | 'meeting'
+  // /contact?tab=meeting opens the booking calendar directly (ROI calculator CTA links here).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = searchParams.get('tab') === 'meeting' ? 'meeting' : 'message'
+  const setTab = (next) => {
+    const params = new URLSearchParams(searchParams)
+    if (next === 'meeting') params.set('tab', 'meeting')
+    else params.delete('tab')
+    setSearchParams(params, { replace: true })
+  }
   const [form, setForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', reason: '', details: '' })
+  const [hp, setHp] = useState('')
   const [status, setStatus] = useState('idle')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setStatus('submitting')
-    await submitLead({ ...form, source: 'contact-page' })
+    await submitLead({ ...form, hp, source: 'contact-page' })
     setStatus('done')
   }
 
@@ -99,17 +110,23 @@ export default function Contact() {
             </div>
 
             {tab === 'meeting' ? (
-              <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8 text-center">
-                <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
-                <p className="mt-2 text-sm text-steel-soft">
-                  Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area site
-                  visits.
+              <div>
+                <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8 text-center">
+                  <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
+                  <p className="mt-2 text-sm text-steel-soft">
+                    Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area site
+                    visits.
+                  </p>
+                </div>
+                <div className="mt-6">
+                  <BookingEmbed />
+                </div>
+                <p className="mt-6 text-center text-sm text-steel-soft">
+                  Calendar not loading, or no time that works? Email directly:{' '}
+                  <a href="mailto:info@stubease.com" data-cursor-hover className="font-mono text-signal hover:underline">
+                    info@stubease.com
+                  </a>
                 </p>
-                <p className="mono-label mt-6 text-[10px] text-steel-soft">Online booking coming soon.</p>
-                <p className="mt-2 text-sm text-steel-soft">In the meantime, email directly:</p>
-                <a href="mailto:info@stubease.com" data-cursor-hover className="mt-1 block font-mono text-signal hover:underline">
-                  info@stubease.com
-                </a>
               </div>
             ) : status === 'done' ? (
               <div className="hud-frame border border-signal/50 bg-void p-10 text-center">
@@ -120,7 +137,8 @@ export default function Contact() {
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="grid gap-5 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="relative grid gap-5 sm:grid-cols-2">
+                <Honeypot value={hp} onChange={setHp} />
                 <input
                   required
                   placeholder="First Name *"

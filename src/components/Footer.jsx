@@ -31,6 +31,7 @@ export default function Footer() {
             <li><Link data-cursor-hover to="/about" className="hover:text-steel-bright">About CSUE</Link></li>
             <li><Link data-cursor-hover to="/contact" className="hover:text-steel-bright">Contact</Link></li>
             <li><Link data-cursor-hover to="/testimonials" className="hover:text-steel-bright">Testimonials</Link></li>
+            <li><Link data-cursor-hover to="/reviews" className="hover:text-steel-bright">Reviews</Link></li>
           </ul>
         </div>
 

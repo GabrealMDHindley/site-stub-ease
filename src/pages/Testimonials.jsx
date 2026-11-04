@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
 import { testimonials } from '../data/testimonials.js'
+import { reviewsPage } from '../data/reviews.js'
 
 export default function Testimonials() {
   return (
@@ -38,6 +40,27 @@ export default function Testimonials() {
                 Real projects. Real slabs. Zero stub-up hazards above the working walking surface.
               </p>
             </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="border-t border-steel-line bg-steel-panel/40 py-20">
+        <div className="mx-auto max-w-4xl px-6 md:px-10">
+          <Reveal className="hud-frame flex flex-col items-start gap-6 border border-steel-line bg-void p-8 md:flex-row md:items-center md:justify-between md:p-10">
+            <div>
+              <div className="mono-label text-xs text-signal">{reviewsPage.testimonialsCta.eyebrow}</div>
+              <h2 className="mt-3 font-display text-2xl font-semibold text-steel-bright md:text-3xl">
+                {reviewsPage.testimonialsCta.title}
+              </h2>
+              <p className="mt-2 max-w-md text-sm text-steel-soft">{reviewsPage.testimonialsCta.body}</p>
+            </div>
+            <Link
+              to="/reviews"
+              data-cursor-hover
+              className="mono-label whitespace-nowrap bg-signal px-7 py-4 text-xs text-void transition-transform hover:scale-[1.03]"
+            >
+              {reviewsPage.testimonialsCta.button}
+            </Link>
           </Reveal>
         </div>
       </section>

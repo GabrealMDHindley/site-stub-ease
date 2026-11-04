@@ -9,23 +9,28 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
 
 ## Stack
 - React 18 + Vite 5 single-page app · react-router-dom 6 · Tailwind CSS 3 · Framer Motion 11.
-- Vercel serverless functions (Node) in `api/`: `lead.js`, `checkout.js` (Stripe),
-  `inventory.js` (scaffold only).
+- Vercel serverless functions (Node) in `api/`: `lead.js`, `reviews.js`, `checkout.js`,
+  `prices.js`, `stripe-webhook.js` (Stripe), `inventory.js`.
 - `vercel.json`: framework `vite`; rewrites everything except `/api/*` to `index.html`.
 - Fonts via Google Fonts in `index.html`: Space Grotesk (display), Inter (body),
   JetBrains Mono (mono). Dark theme only.
 
 ## Map
 - `src/App.jsx` — routes `/`, `/products`, `/products/:slug`, `/how-it-works`, `/safety`,
-  `/about`, `/testimonials`, `/contact`; wrapped in `InventoryProvider` + `CartProvider`;
+  `/about`, `/testimonials`, `/contact` (`?tab=meeting` opens the booking calendar), `/reviews`,
+  `/installse2`; wrapped in `InventoryProvider` + `CartProvider`;
   `LoadScreen` plays `/videos/stub-ease-ii-loader.mp4` on first load.
 - `src/pages/*` — one file per route. `Home.jsx`: hero, stats row, role tabs, ROI
   calculator (`#roi-calculator`), video section. `Products.jsx`: kit configurator,
   `#store`, `#submittals`. `Safety.jsx` is the "Studies & Safety" nav item.
 - `src/components/*` — Navbar (Home · How It Works · Products · Studies & Safety · About ·
-  Testimonials · Contact · "Calculate Savings" → `/#roi-calculator` · cart icon), Footer,
+  Testimonials · Contact · — no Reviews item: the bar already wraps labels at 1024px, so /reviews
+  is linked from the Footer and the Testimonials page instead · "Calculate Savings" → `/#roi-calculator` · cart icon), Footer,
   CustomCursor, LoadScreen, PageHero, Reveal (scroll reveal), StatCounter, RoleTabs,
-  ROICalculator, ExplodedAssembly (scroll-driven exploded view: cap → collar → stand),
+  ROICalculator (unlocked results end in a "Schedule a call with Jeff" CTA →
+  `/contact?tab=meeting`), BookingEmbed (GHL calendar iframe + `form_embed.js`, loaded once),
+  Honeypot (hidden `hp` spam-trap input used by the ROI, Contact and review forms),
+  ExplodedAssembly (scroll-driven exploded view: cap → collar → stand),
   FAQAccordion, VideoModal, CartDrawer, BackorderModal (never shows stock numbers).
 - `src/data/*.js` — **all site content lives here, not in JSX.**
   - `products.js`: 7 products (`stub-ease-ii-system` core kit; `seii-cap`, `bend-ease`,
@@ -38,9 +43,14 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
     never in this public repo); `roiRepresentativeMsrp`.
   - `roles.js` (audience tabs: concrete, electrical, gc, …), `safety.js` (settlements,
     OSHA record, materials), `about.js` (milestones, differentiators, values),
-    `testimonials.js` (Sam Tarbuck, Tim Flores, founder quote).
+    `testimonials.js` (Sam Tarbuck, Tim Flores, founder quote), `reviews.js` (static copy for
+    `/reviews` and the Testimonials-page CTA only — **never put a review in it**; reviews load at
+    runtime from `/api/reviews`).
 - `src/config/features.js` — `CHECKOUT_ENABLED`, `SHOW_PRICING` (both `true`). Flip to
   hide cart / prices site-wide without touching anything else.
+- `src/config/integrations.js` — public integration constants: `BOOKING_URL` (Jeff's GoHighLevel
+  booking calendar, `https://api.leadconnectorhq.com/widget/booking/bPtbIeqGaeCxN8D9e7nT`) and
+  `BOOKING_SCRIPT_URL` (GHL `form_embed.js`). Change the calendar here, nowhere else.
 - `src/lib/` — `analytics.js` (cookie-free page-view beacon → the CRM's
   `POST https://crm-stub-ease.vercel.app/api/analytics`, one per route change via
   `PageviewTracker` in `App.jsx`; only sends from stubease.com / www.stubease.com, never
@@ -63,11 +73,38 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
 founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throughout.
 
 ## Integrations & environment variables (set in the client's Vercel project — never in code)
-- `/api/lead` forwards to `GHL_WEBHOOK_URL` (GoHighLevel inbound webhook) and/or
-  `CUSTOM_CRM_URL` (+ `CUSTOM_CRM_API_KEY` sent as Bearer). Lead shapes: ROI calculator
-  `{ name, company, email, phone, …results, tradeSize, floors, stubUpsPerFloor, damageRate,
-  laborCost }`; contact page `{ firstName, lastName, company, email, phone, reason, details,
-  source: 'contact-page' }`. Returns 200 even if downstream forwarding fails.
+- `/api/lead` (POST) forwards **every** lead to the CRM's intake — `CRM_LEADS_URL`, default
+  `https://crm-stub-ease.vercel.app/api/site?resource=leads&action=intake` — which files it under
+  the CRM's Leads page and pushes the contact to GoHighLevel (tags `website-lead` +
+  `website-estimate`/`website-inquiry`; Jeff's GHL workflow on `website-estimate` notifies him).
+  It sends `x-visitor-ip` (first `x-forwarded-for` entry) and, when set,
+  `Authorization: Bearer $CUSTOM_CRM_API_KEY`. It also still forwards to `GHL_WEBHOOK_URL`,
+  `GHL_ESTIMATE_WEBHOOK_URL` (ROI leads only) and `CUSTOM_CRM_URL` (+ the same Bearer) when
+  those are set; `CUSTOM_CRM_URL` is skipped if it equals the CRM intake URL, so nothing is sent
+  twice. All forwards run in parallel (`Promise.allSettled`, 10 s timeout each); a failure or
+  non-2xx is logged in the function logs and the visitor still gets 200. Validation: email
+  required (≤254 chars), string fields capped (200 chars; `details`/`message` 5000), only
+  string/number/boolean fields forwarded. **Honeypot:** a non-empty `hp` field → 200
+  `{ok:true}` and nothing forwarded; `hp` is stripped before forwarding. Lead shapes: ROI
+  calculator `{ name, company, email, phone, …results, tradeSize, floors, stubUpsPerFloor,
+  damageRate, laborCost, source: 'roi-calculator' }`; contact page `{ firstName, lastName,
+  company, email, phone, reason, details, source: 'contact-page' }`.
+- `CUSTOM_CRM_API_KEY` is the shared site→CRM key: it must equal the CRM's `SITE_API_KEY`
+  whenever that is set in the CRM (the CRM then rejects calls without it). Unset on both = open.
+- `/api/reviews` — GET proxies the CRM's approved reviews
+  (`…/api/site?resource=reviews&action=public`; base overridable with `CRM_REVIEWS_URL`, default
+  `https://crm-stub-ease.vercel.app/api/site?resource=reviews`, the function appends `&action=`),
+  6 s timeout, returns `{ ok, reviews: [{id,name,title,company,location,rating,body,approvedAt}] }`
+  (`ok:false, reviews:[]` if the CRM can't be reached), `Cache-Control: public, max-age=60,
+  s-maxage=60`. POST validates (rating int 1–5, name 2–80, body 20–2000, title/company/location
+  ≤80, valid email ≤254, `consent === true`, honeypot `hp` → silent 200) and forwards to
+  `…&action=submit` with `x-visitor-ip` + optional Bearer `CUSTOM_CRM_API_KEY`; it returns the
+  CRM's status and message as-is, or 502 with a plain message if the CRM is unreachable.
+  Reviews appear on `/reviews` only after Jeff or a Stub-EASE admin approves them in the CRM's
+  Reviews page; the reviewer's email is never returned publicly.
+- **Booking:** `/contact?tab=meeting` embeds Jeff's GHL calendar (`BOOKING_URL`) as an iframe and
+  loads `form_embed.js` once. No CSP exists, so nothing else is needed. Inside the cross-origin
+  iframe the custom cursor stops tracking (cosmetic).
 - **Pricing is Stripe-managed (2026-09-18).** Jeff edits a Price's amount directly in the
   Stripe Dashboard; the site reads it live via `/api/prices` and checkout charges the same
   Price via `/api/checkout`, matched by that Price's `lookup_key` (must equal the SKU code,
