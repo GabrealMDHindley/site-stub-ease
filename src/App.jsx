@@ -14,6 +14,7 @@ import Testimonials from './pages/Testimonials.jsx'
 import Contact from './pages/Contact.jsx'
 import Reviews from './pages/Reviews.jsx'
 import InstallSE2 from './pages/InstallSE2.jsx'
+import CallConfirmed from './pages/CallConfirmed.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { InventoryProvider } from './lib/InventoryContext.jsx'
 import { trackPageview } from './lib/analytics.js'
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/installse2" element={<InstallSE2 />} />
+              <Route path="/call-confirmed" element={<CallConfirmed />} />
             </Routes>
           </main>
           <Footer />
