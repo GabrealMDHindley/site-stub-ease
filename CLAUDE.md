@@ -27,9 +27,9 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
   Testimonials · Contact · — no Reviews item: the bar already wraps labels at 1024px, so /reviews
   is linked from the Footer and the Testimonials page instead · "Calculate Savings" → `/#roi-calculator` · cart icon), Footer,
   CustomCursor, LoadScreen, PageHero, Reveal (scroll reveal), StatCounter, RoleTabs,
-  ROICalculator (unlocked results end in a "Schedule a call with Jeff" CTA →
-  `/contact?tab=meeting`), BookingEmbed (GHL calendar iframe + `form_embed.js`, loaded once),
-  Honeypot (hidden `hp` spam-trap input used by the ROI, Contact and review forms),
+  ROICalculator (unlocked results end in a "Schedule a Call" CTA → `/contact?tab=meeting`),
+  BookingCalendar (custom-built GHL-backed booking calendar — see Booking below),
+  Honeypot (hidden `hp` spam-trap input used by the ROI, Contact, review and booking forms),
   ExplodedAssembly (scroll-driven exploded view: cap → collar → stand),
   FAQAccordion, VideoModal, CartDrawer, BackorderModal (never shows stock numbers).
 - `src/data/*.js` — **all site content lives here, not in JSX.**
@@ -48,14 +48,12 @@ client (intake, status, changelog, deploy plan) live in the `business-studio` re
     runtime from `/api/reviews`).
 - `src/config/features.js` — `CHECKOUT_ENABLED`, `SHOW_PRICING` (both `true`). Flip to
   hide cart / prices site-wide without touching anything else.
-- `src/config/integrations.js` — public integration constants: `BOOKING_URL` (Jeff's GoHighLevel
-  booking calendar, `https://api.leadconnectorhq.com/widget/booking/bPtbIeqGaeCxN8D9e7nT`) and
-  `BOOKING_SCRIPT_URL` (GHL `form_embed.js`). Change the calendar here, nowhere else.
 - `src/lib/` — `analytics.js` (cookie-free page-view beacon → the CRM's
   `POST https://crm-stub-ease.vercel.app/api/analytics`, one per route change via
   `PageviewTracker` in `App.jsx`; only sends from stubease.com / www.stubease.com, never
   from previews or localhost; feeds the CRM's Marketing → Website visitors tool — if the
-  CRM moves to a custom domain, update `ENDPOINT`), `integrations.js` (`submitLead` → POST `/api/lead`; `startCheckout` →
+  CRM moves to a custom domain, update `ENDPOINT`), `integrations.js` (`submitLead` → POST `/api/lead`;
+  `fetchBookingSlots`/`createBooking` → `/api/booking`; `startCheckout` →
   POST `/api/checkout`), `InventoryContext.jsx` (per-browser stock in localStorage key
   `stubease-inventory-v1` — **not shared across visitors**), `CartContext.jsx`.
 - `src/index.css` — Tailwind layers + utilities `.bp-grid`, `.bp-grid-fine`, `.hud-frame`,
@@ -108,9 +106,16 @@ founder; NEC 300.15(F) / 300.17(F) and "working walking surface" language throug
   CRM's status and message as-is, or 502 with a plain message if the CRM is unreachable.
   Reviews appear on `/reviews` only after Jeff or a Stub-EASE admin approves them in the CRM's
   Reviews page; the reviewer's email is never returned publicly.
-- **Booking:** `/contact?tab=meeting` embeds Jeff's GHL calendar (`BOOKING_URL`) as an iframe and
-  loads `form_embed.js` once. No CSP exists, so nothing else is needed. Inside the cross-origin
-  iframe the custom cursor stops tracking (cosmetic).
+- **Booking:** `/contact?tab=meeting` shows a custom-built, on-brand calendar
+  (`src/components/BookingCalendar.jsx`) — no GHL iframe. It calls `/api/booking`
+  (`action=slots`/`action=create`), which proxies to the CRM's `resource=booking` route
+  (`CRM_BOOKING_URL`, default `https://crm-stub-ease.vercel.app/api/site?resource=booking`,
+  same `CUSTOM_CRM_API_KEY` Bearer auth as `/api/lead`), which calls GoHighLevel's real
+  Calendar API (`crm-stub-ease/api/_lib/ghl-calendar.ts`). GHL stays the single source of
+  truth for times, bookings, and automations — this site and the CRM never store a booking
+  locally. A successful booking navigates the visitor straight to `/call-confirmed`
+  client-side (see `src/pages/CallConfirmed.jsx`); a GHL/config failure degrades to an
+  "email directly" fallback instead of a broken calendar.
 - **Pricing is Stripe-managed (2026-09-18).** Jeff edits a Price's amount directly in the
   Stripe Dashboard; the site reads it live via `/api/prices` and checkout charges the same
   Price via `/api/checkout`, matched by that Price's `lookup_key` (must equal the SKU code,

@@ -2,11 +2,8 @@ import { Link } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
 
-// Destination for GoHighLevel's calendar "Confirmation → Redirect to a URL"
-// setting on the calendar embedded at /contact (src/components/
-// BookingEmbed.jsx) — so a completed booking lands here instead of
-// GHL's generic in-widget confirmation message. See src/config/features.js
-// → GHL_CALENDAR_URL for where that's configured.
+// Destination the custom booking calendar (src/components/BookingCalendar.jsx)
+// navigates to once /api/booking confirms the appointment was created in GHL.
 export default function CallConfirmed() {
   return (
     <>

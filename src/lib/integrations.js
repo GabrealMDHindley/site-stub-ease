@@ -30,6 +30,39 @@ export async function submitLead(lead) {
 }
 
 /**
+ * Free GHL calendar slots between startMs/endMs (epoch milliseconds), via /api/booking.
+ * Returns { ok:true, days } | { ok:false, message }.
+ */
+export async function fetchBookingSlots(startMs, endMs, timezone) {
+  try {
+    const qs = new URLSearchParams({ action: 'slots', startDate: String(startMs), endDate: String(endMs), timezone })
+    const res = await fetch(`/api/booking?${qs}`)
+    return await res.json()
+  } catch (err) {
+    console.warn('[integrations] fetchBookingSlots failed.', err)
+    return { ok: false, message: "Couldn't load available times. Please try again shortly." }
+  }
+}
+
+/**
+ * Books one of the slots fetchBookingSlots returned, via /api/booking.
+ * Returns { ok:true, appointmentId } | { ok:false, message }.
+ */
+export async function createBooking({ name, email, startTime, hp }) {
+  try {
+    const res = await fetch('/api/booking?action=create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, startTime, hp }),
+    })
+    return await res.json()
+  } catch (err) {
+    console.warn('[integrations] createBooking failed.', err)
+    return { ok: false, message: 'Could not book that time. Please try again.' }
+  }
+}
+
+/**
  * Creates a Stripe Checkout session by calling a Vercel serverless function.
  * That function should use your Stripe secret key server-side and return
  * the session URL to redirect to.

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import PageHero from '../components/PageHero.jsx'
 import Reveal from '../components/Reveal.jsx'
 import Honeypot from '../components/Honeypot.jsx'
-import BookingEmbed from '../components/BookingEmbed.jsx'
+import BookingCalendar from '../components/BookingCalendar.jsx'
 import { submitLead } from '../lib/integrations.js'
 
 const reasons = [
@@ -115,7 +115,7 @@ export default function Contact() {
                   </p>
                 </div>
                 <div className="mt-6">
-                  <BookingEmbed />
+                  <BookingCalendar />
                 </div>
                 <p className="mt-6 text-center text-sm text-steel-soft">
                   Calendar not loading, or no time that works? Email directly:{' '}
