@@ -26,7 +26,7 @@ export default function Contact() {
     else params.delete('tab')
     setSearchParams(params, { replace: true })
   }
-  const [form, setForm] = useState({ firstName: '', lastName: '', company: '', email: '', phone: '', reason: '', details: '' })
+  const [form, setForm] = useState({ firstName: '', lastName: '', company: '', email: '', reason: '', details: '' })
   const [hp, setHp] = useState('')
   const [status, setStatus] = useState('idle')
 
@@ -161,12 +161,6 @@ export default function Contact() {
                   placeholder="Email Address *"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="border border-steel-line bg-steel-panel px-4 py-3 text-sm outline-none focus:border-signal"
-                />
-                <input
-                  placeholder="Phone Number"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="border border-steel-line bg-steel-panel px-4 py-3 text-sm outline-none focus:border-signal"
                 />
                 <select
