@@ -20,7 +20,7 @@ export default function BookingEmbed() {
     <div className="overflow-hidden border border-steel-line bg-steel-panel/40">
       <iframe
         src={BOOKING_URL}
-        title="Schedule a call with Jeff Krause"
+        title="Schedule a call with Stub-EASE®"
         scrolling="no"
         id="bPtbIeqGaeCxN8D9e7nT_booking"
         style={{ width: '100%', border: 'none', overflow: 'hidden', minHeight: 720 }}

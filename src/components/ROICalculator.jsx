@@ -226,8 +226,8 @@ export default function ROICalculator() {
                             {submitting ? 'Submitting…' : 'Show My Savings Report'}
                           </button>
                           <p className="col-span-full text-xs text-steel-soft">
-                            No spam. No sales calls unless you want them. Your data goes to Jeff at CSUE Technologies
-                            — nobody else.
+                            No spam. No sales calls unless you want them. Your data goes to Stub-EASE® at CSUE
+                            Technologies — nobody else.
                           </p>
                         </motion.form>
                       )}
@@ -256,14 +256,14 @@ export default function ROICalculator() {
                     </p>
                     <div className="mt-8 flex flex-col items-start gap-4 border-t border-steel-line pt-6 md:flex-row md:items-center md:justify-between">
                       <p className="max-w-sm text-sm text-steel-soft">
-                        Want to walk through these numbers for your project? Book a call directly on Jeff's calendar.
+                        Want to walk through these numbers for your project? Book a call directly on our calendar.
                       </p>
                       <Link
                         to="/contact?tab=meeting"
                         data-cursor-hover
                         className="mono-label whitespace-nowrap bg-signal px-7 py-4 text-xs text-void transition-transform hover:scale-[1.03]"
                       >
-                        Schedule a call with Jeff
+                        Schedule a Call
                       </Link>
                     </div>
                   </motion.div>

@@ -380,7 +380,7 @@ export default function HowItWorks() {
           <h2 className="font-display text-3xl font-semibold text-steel-bright md:text-4xl">
             Ready to Put This System on Your Next Pour?
           </h2>
-          <p className="mt-4 text-steel-soft">Order product, or reach out directly to Jeff Krause at CSUE Technologies.</p>
+          <p className="mt-4 text-steel-soft">Order product, or reach out directly to Stub-EASE® at CSUE Technologies.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/products" data-cursor-hover className="mono-label bg-signal px-7 py-4 text-xs text-void">
               Shop Products

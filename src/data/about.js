@@ -2,7 +2,7 @@ export const milestones = [
   {
     year: '2002–2004',
     title: 'University Center of Chicago',
-    body: 'The incident that started it all. Jeff Krause, General Superintendent for Turner Construction, was responsible for the job site where an unprotected conduit stub-up caused a worker trip-and-fall that settled for over $1.3 million.',
+    body: 'The incident that started it all: an unprotected conduit stub-up on a Turner Construction job site caused a worker trip-and-fall that settled for over $1.3 million. Stub-EASE® exists because of it.',
   },
   {
     year: '2004 and Beyond',

@@ -62,7 +62,7 @@ export const products = [
       { label: 'Code compliance', value: 'NEC 300.15(F) / 300.17(F) — metallic & PVC raceways' },
     ],
     pricingNote:
-      'Kit price is calculated live from current MSRP based on the trade size, height, and pack size you select — sold by the box (10 or 25 kits per box). Distributor and purchase-order pricing is available for project quantities; contact Jeff Krause directly for volume pricing.',
+      'Kit price is calculated live from current MSRP based on the trade size, height, and pack size you select — sold by the box (10 or 25 kits per box). Distributor and purchase-order pricing is available for project quantities; contact Stub-EASE® directly for volume pricing.',
     filters: { tradeSize: ['3/4', '1'], height: ['8', '12'], pack: ['10', '25'] },
     cta: 'Add to Cart',
     ctaLink: '/products',

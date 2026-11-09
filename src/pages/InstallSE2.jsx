@@ -230,8 +230,8 @@ export default function InstallSE2() {
               Questions About Your Installation?
             </h2>
             <p className="mt-4 text-steel-soft">
-              Reach out directly to Jeff Krause, Founder & Director of Manufacturing and Product Development at
-              CSUE Technologies. Response within one business day — typically same day.
+              Reach out directly to Stub-EASE® at CSUE Technologies. Response within one business day — typically
+              same day.
             </p>
             <a
               href="mailto:info@stubease.com"

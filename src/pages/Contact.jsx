@@ -51,12 +51,8 @@ export default function Contact() {
           <Reveal className="md:col-span-2">
             <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8">
               <div className="mono-label text-xs text-signal">Direct Contact</div>
-              <div className="mt-3 font-display text-xl text-steel-bright">Jeff Krause</div>
-              <p className="mt-1 text-sm text-steel-soft">
-                Founder & Director of Manufacturing and Product Development
-                <br />
-                CSUE Technologies, Inc.
-              </p>
+              <div className="mt-3 font-display text-xl text-steel-bright">Stub-EASE®</div>
+              <p className="mt-1 text-sm text-steel-soft">CSUE Technologies, Inc.</p>
               <a href="mailto:info@stubease.com" data-cursor-hover className="mt-4 block font-mono text-sm text-signal hover:underline">
                 info@stubease.com
               </a>
@@ -112,7 +108,7 @@ export default function Contact() {
             {tab === 'meeting' ? (
               <div>
                 <div className="hud-frame border border-steel-line bg-steel-panel/40 p-8 text-center">
-                  <div className="font-display text-xl text-steel-bright">Schedule a Meeting with Jeff</div>
+                  <div className="font-display text-xl text-steel-bright">Schedule a Meeting</div>
                   <p className="mt-2 text-sm text-steel-soft">
                     Pick a time that works for you. Available for phone calls, video meetings, and Chicago-area site
                     visits.
@@ -132,8 +128,8 @@ export default function Contact() {
               <div className="hud-frame border border-signal/50 bg-void p-10 text-center">
                 <div className="font-display text-2xl text-steel-bright">Message Sent</div>
                 <p className="mt-2 text-steel-soft">
-                  Thank you for reaching out. Jeff will respond within one business day — typically same day during
-                  business hours.
+                  Thank you for reaching out. Stub-EASE® will respond within one business day — typically same day
+                  during business hours.
                 </p>
               </div>
             ) : (

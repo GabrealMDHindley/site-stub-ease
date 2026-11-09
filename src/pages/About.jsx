@@ -16,12 +16,12 @@ export default function About() {
       <section className="py-16">
         <div className="mx-auto max-w-4xl px-6 md:px-10">
           <Reveal className="hud-frame border border-signal/40 bg-steel-panel/40 p-8 md:p-10">
-            <div className="mono-label text-[10px] text-signal">In His Own Words</div>
+            <div className="mono-label text-[10px] text-signal">In Their Own Words</div>
             <p className="mt-3 font-display text-xl italic text-steel-bright md:text-2xl">
               "I wasn't just a witness to that incident. I was responsible for that job site."
             </p>
             <div className="mono-label mt-4 text-xs text-steel-soft">
-              Jeff Krause — Founder & Director of Manufacturing and Product Development, CSUE Technologies
+              — Stub-EASE®, CSUE Technologies, Inc.
             </div>
           </Reveal>
         </div>
@@ -36,15 +36,15 @@ export default function About() {
               Twenty Years on the Deck, Not in a Lab
             </h2>
             <p className="mt-4 text-steel-soft">
-              Jeff Krause spent his career in high-rise construction as a General Superintendent — managing crews,
-              managing risk, and managing the inevitable chaos of a concrete pour. Between 2002 and 2004, on the
-              University Center of Chicago project with Turner Construction, a worker tripped on an unprotected
+              Stub-EASE® was born from a career in high-rise construction as a General Superintendent — managing
+              crews, managing risk, and managing the inevitable chaos of a concrete pour. Between 2002 and 2004, on
+              the University Center of Chicago project with Turner Construction, a worker tripped on an unprotected
               conduit stub-up. The settlement that followed exceeded <strong className="text-steel-bright">$1.3 million</strong>.
             </p>
             <p className="mt-4 text-steel-soft">
-              Jeff was not just a witness to that incident. He was responsible for that job site. That moment
-              drove twenty years of product development — not in a lab, but on job sites, with electricians, with
-              concrete finishers, with the people who actually have to deal with stub-ups every single day.
+              Responsibility for that job site didn't end with the incident. It drove twenty years of product
+              development — not in a lab, but on job sites, with electricians, with concrete finishers, with the
+              people who actually have to deal with stub-ups every single day.
             </p>
             <p className="mt-4 text-steel-soft">
               The result is <strong className="text-steel-bright">Stub-EASE II™</strong> — a complete, engineered
@@ -59,7 +59,7 @@ export default function About() {
       <section className="border-t border-steel-line bg-steel-panel/40 py-20">
         <div className="mx-auto max-w-4xl px-6 md:px-10">
           <Reveal>
-            <div className="mono-label text-xs text-signal">In Jeff's Own Words</div>
+            <div className="mono-label text-xs text-signal">In Their Own Words</div>
             <h2 className="mt-3 font-display text-3xl font-semibold text-steel-bright md:text-4xl">
               The First Rule of Hazard Prevention: Eliminate It
             </h2>
@@ -71,15 +71,15 @@ export default function About() {
             <div className="p-6">
               <p className="italic text-steel-bright">"If I've done anything, I've gotten rid of the conduit stub-ups."</p>
               <div className="mono-label mt-3 text-xs text-signal">
-                Jeff Krause — Founder & Director of Manufacturing and Product Development, CSUE Technologies
+                — Stub-EASE®, CSUE Technologies, Inc.
               </div>
             </div>
           </Reveal>
 
           <Reveal delay={0.15} className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <InfoCard title="Company" lines={['CSUE Technologies, Inc.', 'Founded by Jeff Krause']} />
+            <InfoCard title="Company" lines={['CSUE Technologies, Inc.', 'Stub-EASE®']} />
             <InfoCard title="Location" lines={['Chicagoland Area', 'Illinois, USA']} />
-            <InfoCard title="Contact" lines={['undercover@stubease.com']} />
+            <InfoCard title="Contact" lines={['info@stubease.com']} />
             <InfoCard title="Patents" lines={['US 10,320,167 B2 · US 10,742,008 B2', 'US 11,221,090 B2 · Additional patent pending']} />
           </Reveal>
         </div>
@@ -151,13 +151,13 @@ export default function About() {
       {/* CTA */}
       <section className="border-t border-steel-line py-24 text-center">
         <Reveal className="mx-auto max-w-2xl px-6">
-          <h2 className="font-display text-3xl font-semibold text-steel-bright md:text-4xl">Talk to Jeff Directly</h2>
+          <h2 className="font-display text-3xl font-semibold text-steel-bright md:text-4xl">Talk to Stub-EASE® Directly</h2>
           <p className="mt-4 text-steel-soft">
             Questions about the system, a project, or a submittal package — reach out.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/contact" data-cursor-hover className="mono-label bg-signal px-7 py-4 text-xs text-void">
-              Contact Jeff
+              Contact Stub-EASE®
             </Link>
             <Link to="/products" data-cursor-hover className="mono-label border border-steel-line px-7 py-4 text-xs text-steel-bright hover:border-signal hover:text-signal">
               Shop Products

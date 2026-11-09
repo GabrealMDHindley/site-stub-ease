@@ -16,6 +16,6 @@ export const testimonials = [
 export const founderQuote = {
   quote:
     'I watched a $1.3 million settlement happen because of a conduit stub-up. I was the General Superintendent. I spent the next 20 years designing a system so no one else has to make that call.',
-  name: 'Jeff Krause',
-  title: 'Founder & Director of Manufacturing and Product Development, CSUE Technologies',
+  name: 'Stub-EASE®',
+  title: 'CSUE Technologies, Inc.',
 }

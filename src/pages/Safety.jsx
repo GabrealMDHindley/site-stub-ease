@@ -54,7 +54,7 @@ export default function Safety() {
               figuring out how to make sure it could never happen again."
             </p>
             <div className="mono-label mt-6 text-xs text-signal">
-              — Jeff Krause, Founder & Director of Manufacturing and Product Development, CSUE Technologies
+              — Stub-EASE®, CSUE Technologies, Inc.
             </div>
           </Reveal>
         </div>

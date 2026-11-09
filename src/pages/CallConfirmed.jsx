@@ -12,7 +12,7 @@ export default function CallConfirmed() {
     <>
       <PageHero
         eyebrow="You're Booked"
-        title="Your Call with Jeff Is Confirmed"
+        title="Your Call Is Confirmed"
         subtitle="Thanks for scheduling time with CSUE Technologies. A confirmation with the exact date and time is on its way to your email — add it to your calendar so it doesn't slip."
       />
 
@@ -23,7 +23,7 @@ export default function CallConfirmed() {
             <ul className="mx-auto mt-6 max-w-lg space-y-3 text-left text-sm text-steel-soft">
               <li>— You'll get a confirmation email with the date, time, and a calendar invite.</li>
               <li>— A reminder goes out before the call so it doesn't catch you mid-pour.</li>
-              <li>— Jeff — Founder & Director of Manufacturing and Product Development — takes the call directly. No sales team, no hand-offs.</li>
+              <li>— Stub-EASE®'s founder takes the call directly. No sales team, no hand-offs.</li>
               <li>— Phone calls, video meetings, and Chicago-area site visits are all available — whatever you booked.</li>
             </ul>
           </Reveal>

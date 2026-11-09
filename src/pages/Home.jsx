@@ -192,8 +192,8 @@ export default function Home() {
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             <p className="text-sm text-steel-soft md:col-span-1">
-              Single settlement from a conduit trip-and-fall on a high-rise construction site. Jeff Krause, then
-              General Superintendent, witnessed this firsthand at University Center of Chicago (Turner
+              Single settlement from a conduit trip-and-fall on a high-rise construction site — witnessed firsthand
+              by Stub-EASE®'s founder, then General Superintendent, at University Center of Chicago (Turner
               Construction, 2002–2004). That incident launched 20+ years of product development.
             </p>
             <p className="text-sm text-steel-soft md:col-span-1">
@@ -338,7 +338,7 @@ export default function Home() {
             Ready to Eliminate Stub-Up Risk on Your Next Project?
           </h2>
           <p className="mt-4 text-steel-soft">
-            Order product, request a quote, or reach out directly to Jeff Krause at CSUE Technologies.
+            Order product, request a quote, or reach out directly to Stub-EASE® at CSUE Technologies.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/products" data-cursor-hover className="mono-label bg-signal px-7 py-4 text-xs text-void">
