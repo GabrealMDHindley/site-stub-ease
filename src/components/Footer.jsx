@@ -45,11 +45,19 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto mt-12 max-w-7xl border-t border-steel-line pt-6 text-xs text-steel-soft">
-        © 2026 CSUE Technologies, Inc. All rights reserved. The Bend-EASE™ elbow was designed and tested to meet UL
-        specifications for use as a transition fitting between metallic and PVC conduit systems in concrete
-        construction per NEC 300.15(F) (2023 NEC) / NEC 300.17(F) (2026 NEC). Legal & Policies, Return Policy, and
-        Shipping Policy pages are linked from the live site footer — send over that copy and I'll wire up matching
-        pages here.
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link data-cursor-hover to="/privacy-policy" className="hover:text-steel-bright">
+            Privacy Policy
+          </Link>
+          <Link data-cursor-hover to="/terms-of-service" className="hover:text-steel-bright">
+            Terms of Service
+          </Link>
+        </div>
+        <p className="mt-4">
+          © 2026 CSUE Technologies, Inc. All rights reserved. The Bend-EASE™ elbow was designed and tested to meet
+          UL specifications for use as a transition fitting between metallic and PVC conduit systems in concrete
+          construction per NEC 300.15(F) (2023 NEC) / NEC 300.17(F) (2026 NEC).
+        </p>
       </div>
     </footer>
   )

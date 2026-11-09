@@ -15,6 +15,8 @@ import Contact from './pages/Contact.jsx'
 import Reviews from './pages/Reviews.jsx'
 import InstallSE2 from './pages/InstallSE2.jsx'
 import CallConfirmed from './pages/CallConfirmed.jsx'
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
+import TermsOfService from './pages/TermsOfService.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { InventoryProvider } from './lib/InventoryContext.jsx'
 import { trackPageview } from './lib/analytics.js'
@@ -70,6 +72,8 @@ export default function App() {
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/installse2" element={<InstallSE2 />} />
               <Route path="/call-confirmed" element={<CallConfirmed />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
             </Routes>
           </main>
           <Footer />
