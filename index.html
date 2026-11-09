@@ -18,5 +18,15 @@
   <body class="bg-void text-steel-bright font-body antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- GoHighLevel chat widget — site-wide, loaded once here (not per-route) so it
+         persists across client-side navigation instead of re-initializing on every
+         page. Verified working 2026-11-09: widget ID resolves, bundle loads, chat
+         bubble renders with the default greeting. -->
+    <script
+      src="https://widgets.leadconnectorhq.com/loader.js"
+      data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
+      data-widget-id="6a9237e63cbef685c59c6b7f"
+      data-source="WEB_USER"
+    ></script>
   </body>
 </html>
